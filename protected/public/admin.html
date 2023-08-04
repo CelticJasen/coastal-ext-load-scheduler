@@ -1,0 +1,27 @@
+<header>
+	<h2>External Reports</h2>
+</header>
+
+<nav>
+	<a id="schedulerButton" href="javascript:void(0)">Scheduler</a>
+	<a id="lookupButton" href="javascript:void(0)">Lookup</a>
+	<a id="reportsButton" href="javascript:void(0)">Reports</a>
+    <a id="adminButton" href="javascript:void(0)" class="nativeLink">Administration</a>
+	<button id="logoutBtn">Log Out</button>
+</nav>
+
+<main>
+	<div id="adminButtons">
+		<button id="createUser">Create User</button>
+		<button id="listUsers">List Users</button>
+		<form id="searchUsers">
+			<label>Edit User:</label>
+			<input type="text" id="searchUsersInput" name="searchUsersInput">
+			<button id="searchUsersSubmit">Edit</button>
+		</form>
+	</div>
+
+	<div id="adminResultContainer"></div>
+
+	<script src="./scripts/admin.js"></script>
+</main>

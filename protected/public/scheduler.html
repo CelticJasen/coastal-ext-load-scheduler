@@ -1,0 +1,32 @@
+<header>
+	<h2>External Scheduler</h2>
+</header>
+
+<nav>
+	<div id="links">
+		<a id="schedulerButton" href="javascript:void(0)" class="nativeLink">Scheduler</a>
+		<a id="lookupButton" href="javascript:void(0)">Lookup</a>
+		<a id="reportsButton" href="javascript:void(0)">Reports</a>
+		<a id="adminButton" href="javascript:void(0)">Administration</a>
+	</div>
+	<div id="logOutButton">
+		<button id="logoutBtn">Log Out</button>
+	</div>
+</nav>
+
+<main>
+	<div id="input_fields">
+		<form id="lift_input">
+			<div class="input">
+				<label>Lift number:</label>				
+				<input type="number" id="number" name="number" max="99999999" required>
+			</div>
+			
+			<div id="submit" class="input">
+				<input type="submit" id="submit_button" src="images/submit.png" alt="Submit" value="Search">
+			</div>
+		</form>
+	</div>
+	<div id="resultContainer"></div>
+	<script src="./scripts/scheduler.js"></script>
+</main>

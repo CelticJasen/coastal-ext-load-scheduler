@@ -1,0 +1,33 @@
+<header>
+	<h2>External Lookup</h2>
+</header>
+
+<nav>
+	<a id="schedulerButton" href="javascript:void(0)">Scheduler</a>
+	<a id="lookupButton" href="javascript:void(0)" class="nativeLink">Lookup</a>
+	<a id="reportsButton" href="javascript:void(0)">Reports</a>
+	<a id="adminButton" href="javascript:void(0)">Administration</a>
+	<button id="logoutBtn">Log Out</button>
+</nav>
+
+<main>		
+	<div id="searchContainer">
+		<form id="search_input_fields">
+			<div id="id_input_query" class="input">
+				<label>By Unique ID:</label>				 
+				<input type="number" id="unique_id" name="unique_id" max="99999999">
+			</div>
+			<div id="date_input_query">
+				<label>By Load Date:</label>
+				<input type="date" id="date_time_query" name="date_time_query">
+			</div>	
+			
+			<div id="submit" class="input">
+				<input type="submit" id="submit_button" src="./images/submit.png" alt="Submit" value="Search">
+			</div>
+		</form>
+	</div>
+
+	<div id="resultContainer" class="table-container"></div>
+	<script src="./scripts/lookup.js"></script>
+</main>

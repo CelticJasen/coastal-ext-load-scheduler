@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+		<meta charset="UTF-8">
+		<title>External Scheduler: Login</title>
+		<link rel="stylesheet" href="./css/styles.css">
+		<link href = "./images/coastal-logo.png" rel="icon" type="image/gif">
+	</head>
+    <body>
+        <div id="login">
+            <div id="loginField">
+                <h2>Log In</h2>
+                <div>
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+                </div>
+                <div>
+                <label for="password">Password:&nbsp;&nbsp;</label>
+                <input type="password" id="password" name="password" required>
+                </div>
+                <button id="loginBtn">LOG IN</button>
+            </div>
+        </div>
+        
+
+        <div id="protected">
+            <p id="protectedMessage"></p>
+        </div>
+
+        <script src="./scripts/auth.js"></script>
+    </body>
+</html>

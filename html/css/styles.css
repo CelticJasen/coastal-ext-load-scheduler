@@ -1,0 +1,373 @@
+@import url('https://fonts.googleapis.com/css2?family=Cabin:wght@400;500&display=swap');
+
+/* Reset and Global Styles */
+html, body, div, p, h1, h2, h3, h4, h5, a, img, header, footer, main, nav {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	outline: 0;
+	font-weight: inherit;
+	font-style: inherit;
+	font-size: 100%;
+	font-family: inherit;
+	vertical-align: baseline;
+}
+
+body {
+	background-color: rgba(24, 24, 24, 1);
+	color: white;
+	font-family: 'Cabin', sans-serif;
+}
+
+/* Header Styles */
+header {
+	padding: 2% 0;
+	margin-bottom: 2%;
+	border-bottom: solid white 1px;
+	background-color: rgba(0, 0, 0, .5);
+	font-weight: 500;
+	text-align: center;
+	font-size: 38px;
+	text-transform: uppercase;
+}
+
+/*Nav Styles*/
+nav {
+    margin-bottom: 2%;
+    width: 100%;
+    color: #999;
+    text-align: center;
+    text-decoration: none;
+    font-family: 'Cabin', sans-serif;
+    font-weight: 600;
+}
+
+nav button {
+    border: none;
+    font-family: 'Cabin';
+    text-decoration: underline;
+    font-size: 18px;
+    font-weight: 600;
+    color: #999;
+    background-color: inherit;
+    position: absolute;
+    right:0;
+    top:0;
+    margin-right: 2vw;
+    margin-top: 4vw;
+}
+
+nav button:hover {
+    color: #eee;
+}
+
+nav a {
+    font-size: 22px;
+    font-weight: 600;
+    color: #999;
+    text-align: center;
+    text-decoration: none;
+    padding: .5em .8em;
+    position: relative;
+}
+
+.nativeLink {
+    border: 4px solid #999;
+}
+
+nav a::before,
+nav a::after {
+    height: 14px;
+    width: 14px;
+    position: absolute;
+    transition: all .35s ease;
+    opacity: 0;
+}
+
+nav a:hover {
+    color: #eee;
+    border-color: #eee;
+}
+
+/* Main Styles */
+main {
+    width: 70%;
+    margin-top: 2%;
+	margin-left: 15%;
+	margin-right: 15%;
+	margin-bottom: 10%;
+	font-size: 18px;
+}
+
+span{
+    color: red;
+}
+
+h1{
+    color: green;
+}
+
+#number {
+    display: inline-block;
+}
+
+/*Styling for dynamic form*/
+#schedule_form {
+    margin-left: 5%;
+    max-width: 60%;
+    display: grid;
+    grid-template-columns: repeat(3, 35%);
+    grid-template-rows: repeat(8, auto);
+    row-gap: 4%;
+}
+
+#loadDiv{
+    grid-column: 1;
+    grid-row: 1;
+}
+
+#loadDateTimeDiv{
+    grid-column: 1;
+    grid-row: 2;
+}
+
+#delDateTimeDiv{
+    grid-column: 2;
+    grid-row: 2;
+}
+
+#prodDiv{
+    grid-column: 1;
+    grid-row: 3;
+}
+
+#originDiv{
+    grid-column: 1;
+    grid-row: 4;
+}
+
+#cityDiv{
+    grid-column: 1;
+    grid-row: 5;
+}
+
+#stateDiv{
+    grid-column: 1;
+    grid-row: 6;
+}
+
+#countyDiv{
+    grid-column:2;
+    grid-row: 6;
+}
+
+#carDiv{
+    grid-column: 1;
+    grid-row: 7;
+}
+
+#custDiv{
+    grid-column: 1;
+    grid-row: 8;
+}
+
+#formSubmit{
+    grid-column: 2;
+    grid-row:8;
+    width: 70%;
+    margin-top: 8.5%;
+}
+
+#responseText{
+    grid-column: 3;
+    grid-row: 8;
+    margin-top: 8.5%;
+}
+
+#responseTextLookup{
+    margin-top: 1%;
+}
+
+/* input fields styling */
+input:valid{
+    color: black;
+}
+
+input:invalid{
+    color:red;
+}
+
+input:focus:valid{
+    outline: none !important;
+    border:2px solid rgb(17, 17, 17);
+    box-shadow: 0 0 5px #5f5f5f;
+    border-radius: 4px;
+}
+
+input:focus:invalid{
+    outline: none !important;
+    border:2px solid rgb(156, 0, 0);
+    box-shadow: 0 0 5px #c90b0b;
+    border-radius: 4px;
+}
+
+.input {
+    padding-bottom: 2%;
+    width: 80%;
+    accent-color: rgb(0, 0, 0);
+}
+
+.formInput {
+    display: block;
+    margin-bottom: 2%;
+    margin-left: 3%;
+}
+
+input[type="submit"] {
+    width: 16%; 
+    margin-bottom: 3%;
+}
+
+/*For lookup input options*/
+
+#search_input_fields {
+    display: grid;
+    grid-template-columns: repeat(3, 25%);
+    grid-template-rows: repeat(1, auto);
+    row-gap: 2%;
+    margin-top: 5%;
+}
+
+#id_input_query {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+#id_input_query #unique_id {
+    width: 40%;
+}
+
+#date_input_query {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+#searchContainer #submit {
+    grid-column: 3;
+    grid-row: 1;
+}
+
+#searchContainer #submit input {
+    width: 70%;
+}
+
+/*Reports Page Specific*/
+#buttonsDiv {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1%;
+}
+
+#buttonsDiv button {
+    margin-right: 10px;
+    margin-left: 10px;
+}
+
+/* --------------- For the External Lookup/Reports table --------------- */
+
+.table-container {
+    text-align: center;
+    position: absolute;
+    left: 0;
+    width: 100%;
+}
+
+#tableDiv {
+    display: flex;
+
+    width: 100%;
+    justify-content: center;
+    margin-bottom: 2%;
+}
+
+#dynamicTable {
+    width: 80%;
+    border-collapse: collapse;
+    background-color: white;
+    table-layout: auto;
+    margin-bottom: 3%;
+    
+}
+
+#dynamicTable th,
+#dynamicTable td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    white-space: nowrap;
+}
+
+/* Style the table header cells */
+#dynamicTable th {
+    background-color: #f2f2f2;
+    text-align: left;
+}
+
+#dynamicTable tr:nth-child(even) {
+    background-color: #bebebe;
+}
+
+/* Set the text color to black for all cells */
+#dynamicTable th,
+#dynamicTable td {
+    color: black;
+    border-bottom: 2px solid black;
+}
+
+
+#buttonDiv {
+    width: 100%;
+    text-align: center;
+}
+#saveChangesButton{
+    width: 8%;
+}
+
+/*----------Login Page Styles----------*/
+#login{
+    width: 100%;
+    height: 90vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#loginField {
+    background-color: #f2f2f266;
+    border: 1px solid #f2f2f2;
+    border-radius: 8px;
+    width: 28%;
+    height: auto;
+    text-align: center;
+}
+
+#loginField h2 {
+    padding: 1%;
+    padding-top: 4%;
+    font-family: 'Cabin';
+    font-size: 22px;
+    
+}
+
+#loginField div {
+    padding: 2%;
+}
+
+#loginBtn {
+    margin-top: 4%;
+    margin-bottom: 8%;
+    width: 140px;
+    font-family: 'Cabin';
+}
+
+
