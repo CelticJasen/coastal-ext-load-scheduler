@@ -84,7 +84,7 @@ function formatDateTime(dateString) {
 }
 
 function generateToken(userId) {
-    return jwt.sign({ userId }, secretKey, { expiresIn: '1h' });
+    return jwt.sign({ userId }, secretKey, { expiresIn: '9h' });
 }
 
 function hashPassword(username, plainTextPassword, permission){

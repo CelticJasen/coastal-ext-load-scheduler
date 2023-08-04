@@ -1,3 +1,28 @@
+const timeoutDuration = 5 * 60 * 1000; //5 minutes
+let timeoutLogin;
+
+function resetTimer(){
+    clearTimeout(timeoutLogin);
+    timeoutLogin = setTimeout(logout, timeoutDuration);
+}
+
+function onUserActivity(){
+    document.getElementById('activityTracker').innerText = Date.now();
+
+    resetTimer();
+}
+
+function logout(){
+    // Remove the token from localStorage
+    localStorage.removeItem('token');
+        
+    // Show the login section and hide the protected route section
+    document.getElementById('username').value = '';
+    document.getElementById('password').value = '';
+    document.getElementById('login').style.display = 'flex';
+    document.getElementById('protectedMessage').innerHTML = '';
+}
+
 // Helper function to send POST requests
 async function postData(url, data) {
     try {
@@ -26,14 +51,7 @@ async function postData(url, data) {
 
 function newLogoutButton(){
     document.getElementById('logoutBtn').addEventListener('click', () => {
-        // Remove the token from localStorage
-        localStorage.removeItem('token');
-    
-        // Show the login section and hide the protected route section
-        document.getElementById('username').value = '';
-        document.getElementById('password').value = '';
-        document.getElementById('login').style.display = 'flex';
-        document.getElementById('protectedMessage').innerHTML = '';
+        logout();
     });
 }
 
@@ -42,6 +60,7 @@ async function fetchProtectedRoute(route) {
     const token = localStorage.getItem('token');
     if (!token) {
         alert('Authentication token not found. Please login again.');
+        window.location.reload();
         return;
     }
 
@@ -133,8 +152,7 @@ async function fetchProtectedRoute(route) {
     }
     catch (error) {
         localStorage.removeItem('token');
-        alert('Error fetching protected route.');
-        console.error('Error:', error);
+        window.location.reload();
     }
 }
 
@@ -164,6 +182,7 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
 
         // Fetch the protected route content
         fetchProtectedRoute('Scheduler');
+        resetTimer();
     }
     else {
         alert('Login failed. Please check your credentials.');
@@ -177,3 +196,7 @@ if (token) {
     document.getElementById('protected').style.display = 'block';
     fetchProtectedRoute();
 }
+
+document.addEventListener('click', onUserActivity);
+document.addEventListener('mousemove', onUserActivity);
+document.addEventListener('keypress', onUserActivity);
