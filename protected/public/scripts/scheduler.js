@@ -275,15 +275,12 @@ document.getElementById('submit_button').addEventListener('click', async (event)
 newLogoutButton();
 
 document.getElementById('schedulerButton').addEventListener('click', function() {
-    console.log('Scheduler button clicked');
     fetchProtectedRoute('Scheduler');
 });
 document.getElementById('lookupButton').addEventListener('click', function(){
-    console.log('Lookup button clicked');
     fetchProtectedRoute('Lookup');
 });
 document.getElementById('reportsButton').addEventListener('click', function(){
-    console.log('Reports button clicked');
     fetchProtectedRoute('Reports');
 });
 document.getElementById('adminButton').addEventListener('click', function(){

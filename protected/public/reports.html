@@ -12,8 +12,17 @@
 
 <main>
 	<div id="buttonsDiv">
+		<div id="beginDateDiv">
+			<label>Begin Date:</label>
+			<input type="date" id="beginDate" name="beginDate">
+		</div>
+		<div id="endDateDiv">
+			<label>End Date:</label>
+			<input type="date" id="endDate" name="endDate">
+		</div>
+		<button id="searchButton">Search</button>
 		<button id="printButton">Print Report</button>
-		<button id="refreshButton">Refresh</button>
+		<button id="refreshButton">Clear</button>
 	</div>
 	<div id="resultContainer" class="table-container"></div>
 	<script src="./scripts/reports.js"></script>

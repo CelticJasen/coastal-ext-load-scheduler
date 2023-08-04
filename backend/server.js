@@ -358,11 +358,13 @@ app.post('/read-report', async (req,res) => {
 });
 
 app.post('/read-reports-page', async (req, res) => {
+    const { startDate, endDate } = req.body;
 
     try {
-        const query = `SELECT *
-        FROM Main
-        Where convert(date, load_date_time) = convert(date, GETDATE())`;
+        const query = `
+            SELECT *
+            FROM Main
+            WHERE load_date_time BETWEEN '${startDate}' AND DATEADD(DAY, 1, '${endDate}')`;
         const result = await databaseQuery(query, localConfig);
 
         const responseData = {

@@ -132,6 +132,7 @@ async function fetchProtectedRoute(route) {
         }
     }
     catch (error) {
+        localStorage.removeItem('token');
         alert('Error fetching protected route.');
         console.error('Error:', error);
     }

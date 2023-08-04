@@ -16,6 +16,10 @@ function formatDateTime(dateString) {
 
 // Function to dynamically create the table
 function createTable() {
+    if(document.getElementById('tableDiv')){
+        document.getElementById('tableDiv').remove();
+    }
+
     var tableContainer = document.getElementById("resultContainer");
     var table = document.createElement("table");
     table.id = "dynamicTable";
@@ -91,12 +95,21 @@ async function populateTable() {
 
 // retrieves information from our server
 async function dataRetriever(){
+    const startDate = document.getElementById('beginDate').value;
+    const endDate = document.getElementById('endDate').value;
+
+    const payload = {
+        startDate,
+        endDate
+    }
+
     try {
         const response = await fetch('/read-reports-page', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-            }
+            },
+            body: JSON.stringify(payload),
         });
 
         if (!response.ok) {
@@ -111,10 +124,11 @@ async function dataRetriever(){
 
 }
 
-// defines containers
 var container = document.getElementById('resultContainer');
+var startDate;
+var endDate;
 
-createTable();
+document.getElementById('searchButton').addEventListener('click', createTable);
 
 newLogoutButton();
 
