@@ -134,14 +134,38 @@ async function populateEditTable(user){
                 if (data.hasOwnProperty(key)) {
                     const cell = document.createElement('td');
                     const input = document.createElement('input');
+                    const dropdown = document.createElement('select');
                     input.setAttribute('value', data[key]);
                     if(key === 'username'){
                         input.id = 'usernameEdit';
+                        cell.appendChild(input);
                     }
                     else if(key === 'permission'){
-                        input.id = 'permissionEdit';
+                        dropdown.id = 'permissionEdit';
+                        dropdown.class = 'formInput';
+                    
+                        const adminOption = document.createElement('option');
+                        adminOption.innerHTML = 'Administrator';
+                        adminOption.value = 'Administrator';
+                    
+                        const dispatchOption = document.createElement('option');
+                        dispatchOption.innerHTML = 'Dispatch';
+                        dispatchOption.value = 'Dispatch';
+                    
+                        const plantOption = document.createElement('option');
+                        plantOption.innerHTML = 'Plant';
+                        plantOption.value = 'Plant';
+                    
+                        const viewerOption = document.createElement('option');
+                        viewerOption.innerHTML = 'Viewer';
+                        viewerOption.value = 'Viewer';
+                    
+                        dropdown.appendChild(adminOption);
+                        dropdown.appendChild(dispatchOption);
+                        dropdown.appendChild(plantOption);
+                        dropdown.appendChild(viewerOption);
+                        cell.appendChild(dropdown);
                     }
-                    cell.appendChild(input);
 
                     row.appendChild(cell);
                 }
@@ -343,40 +367,54 @@ document.getElementById('searchUsersSubmit').addEventListener('click', async (ev
 
     document.getElementById('deleteButton').addEventListener('click', async(event) => {
         event.preventDefault();
+        let payload;
+        if (confirm(`Are you sure you want to delete ${username}?`) == true){
+            payload = {
+                username
+            }
 
-        const payload = {
-            username
+            try{
+                const response = await fetch('/adminDeleteUser', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                });
+                
+                alert('USER HAS BEEN DELETED: ', response);
+                document.getElementById('searchUsersSubmit').click();
+            }
+            catch (error) {
+                console.error('Uh oh!', error);
+            }
         }
+        
 
-        try{
-            const response = await fetch('/adminDeleteUser', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payload),
-            });
-            
-            alert('USER HAS BEEN DELETED: ', response);
-        }
-        catch (error) {
-            console.error('Uh oh!', error);
-        }
+        
     })
 
 });
 
 newLogoutButton();
 
-document.getElementById('schedulerButton').addEventListener('click', function() {
-    fetchProtectedRoute('Scheduler');
-});
-document.getElementById('lookupButton').addEventListener('click', function(){
-    fetchProtectedRoute('Lookup');
-});
-document.getElementById('reportsButton').addEventListener('click', function(){
-    fetchProtectedRoute('Reports');
-});
-document.getElementById('adminButton').addEventListener('click', function(){
-    fetchProtectedRoute('Administration');
-});
+if(document.getElementById('schedulerButton')){
+    document.getElementById('schedulerButton').addEventListener('click', function() {
+        fetchProtectedRoute('Scheduler');
+    });
+}
+if(document.getElementById('lookupButton')){
+    document.getElementById('lookupButton').addEventListener('click', function(){
+        fetchProtectedRoute('Lookup');
+    });
+}
+if(document.getElementById('reportsButton')){
+    document.getElementById('reportsButton').addEventListener('click', function(){
+        fetchProtectedRoute('Reports');
+    });
+}
+if(document.getElementById('adminButton')){
+    document.getElementById('adminButton').addEventListener('click', function(){
+        fetchProtectedRoute('Administration');
+    });
+}

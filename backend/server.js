@@ -83,8 +83,8 @@ function formatDateTime(dateString) {
     return dateString.replace(/T|:\d+\.\d+Z/g, ' ').slice(0, 16);
 }
 
-function generateToken(userId) {
-    return jwt.sign({ userId }, secretKey, { expiresIn: '9h' });
+function generateToken(userId, storedPermission) {
+    return jwt.sign({ userId, storedPermission }, secretKey, { expiresIn: '9h' });
 }
 
 function hashPassword(username, plainTextPassword, permission){
@@ -123,29 +123,34 @@ app.post('/login', async (req, res) => {
         return res.status(401).json({ error: 'Invalid username or password' });
     } */
     let storedPassword;
-
-    try{
-        const passwordQuery = `SELECT password FROM dbo.UserAuthentication WHERE username = '${username}';`;
-        const result = await databaseQuery(passwordQuery, localConfig);
-        storedPassword = result[0].password;
-        storedID = result[0].ID;
-    }catch(error){
-        console.error('Error executing the database query: ', error);
-        res.status(500).json({ error: 'Internal server error'});
-    }
+    if(await checkExistingUser(username)){
+        try{
+            const passwordQuery = `SELECT password, permission FROM dbo.UserAuthentication WHERE username = '${username}';`;
+            const result = await databaseQuery(passwordQuery, localConfig);
+            storedPassword = result[0].password;
+            storedID = result[0].ID;
+            storedPermission = result[0].permission;
+        }catch(error){
+            console.error('Error executing the database query: ', error);
+            res.status(500).json({ error: 'Internal server error'});
+        }
+        
+        bcrypt.compare(password, storedPassword, (err, isPasswordValid) => {
+            if (err) {
+                return res.status(500).json({ error: 'Internal server error' });
+            }
     
-    bcrypt.compare(password, storedPassword, (err, isPasswordValid) => {
-        if (err) {
-            return res.status(500).json({ error: 'Internal server error' });
-        }
-  
-        if (!isPasswordValid) {
-            return res.status(401).json({ error: 'Invalid username or password' });
-        }
-  
-        const token = generateToken(storedID);
-        res.json({ token });
-    });
+            if (!isPasswordValid) {
+                return res.status(401).json({ error: 'Invalid username or password' });
+            }
+    
+            const token = generateToken(storedID, storedPermission);
+            res.json({ token });
+        });
+    }
+    else{
+        return res.status(401).json({ error: 'Invalid username or password' });
+    }
 });
 
 // Protected route example (requires authentication)
@@ -160,8 +165,24 @@ app.get('/scheduler', (req, res) => {
             return res.status(401).json({ error: 'Invalid token' });
         }
 
-        // The user is authenticated; you can handle the protected route logic here.
-        const protectedPagePath = path.join(publicDir, 'scheduler.html');
+        let protectedPagePath;
+
+        if(decoded.storedPermission === 'Viewer'){
+            protectedPagePath = path.join(publicDir, 'reports-viewer.html');    
+        }
+        else if(decoded.storedPermission === 'Plant'){
+            protectedPagePath = path.join(publicDir, 'lookup-plant.html');
+        }
+        else if(decoded.storedPermission === 'Dispatch'){
+            protectedPagePath = path.join(publicDir, 'scheduler-dispatch.html');
+        }
+        else if(decoded.storedPermission === 'Administrator'){
+            protectedPagePath = path.join(publicDir, 'scheduler.html');
+        }
+        else{
+            return res.status(401).json({ error: 'Permission not found' });
+        }
+
         res.sendFile(protectedPagePath);
     });
 });
@@ -176,9 +197,25 @@ app.get('/schedulerScript', (req, res) => {
         if (err) {
             return res.status(401).json({ error: 'Invalid token' });
         }
+        
+        let protectedPagePath;
+
+        if(decoded.storedPermission === 'Viewer'){
+            protectedPagePath = path.join(publicDir, 'scripts', 'reports.js');
+        }
+        else if(decoded.storedPermission === 'Plant'){
+            protectedPagePath = path.join(publicDir, 'scripts', 'lookup-plant.js');
+        }
+        else if(decoded.storedPermission === 'Administrator' || decoded.storedPermission === 'Dispatch'){
+            protectedPagePath = path.join(publicDir, 'scripts', 'scheduler.js');
+        }
+        else{
+            return res.status(401).json({ error: 'Permission not found' });
+        }
+
 
         // The user is authenticated; you can handle the protected route logic here.
-        const protectedPagePath = path.join(publicDir, 'scripts', 'scheduler.js');
+        
         res.sendFile(protectedPagePath);
     });
 });
@@ -194,8 +231,24 @@ app.get('/lookup', (req, res) => {
             return res.status(401).json({ error: 'Invalid token' });
         }
 
-        // The user is authenticated; you can handle the protected route logic here.
-        const protectedPagePath = path.join(publicDir, 'lookup.html');
+        let protectedPagePath;
+
+        if(decoded.storedPermission === 'Viewer'){
+            protectedPagePath = path.join(publicDir, 'reports-viewer.html');    
+        }
+        else if(decoded.storedPermission === 'Plant'){
+            protectedPagePath = path.join(publicDir, 'lookup-plant.html');
+        }
+        else if(decoded.storedPermission === 'Dispatch'){
+            protectedPagePath = path.join(publicDir, 'lookup-dispatch.html');
+        }
+        else if(decoded.storedPermission === 'Administrator'){
+            protectedPagePath = path.join(publicDir, 'lookup.html');
+        }
+        else{
+            return res.status(401).json({ error: 'Permission not found' });
+        }
+
         res.sendFile(protectedPagePath);
     });
 });
@@ -211,9 +264,23 @@ app.get('/lookupScript', (req, res) => {
             return res.status(401).json({ error: 'Invalid token' });
         }
 
-        // The user is authenticated; you can handle the protected route logic here.
-        const protectedPagePath = path.join(publicDir, 'scripts', 'lookup.js');
+        let protectedPagePath;
+
+        if(decoded.storedPermission === 'Viewer'){
+            protectedPagePath = path.join(publicDir, 'scripts', 'reports.js');
+        }
+        else if(decoded.storedPermission === 'Plant'){
+            protectedPagePath = path.join(publicDir, 'scripts', 'lookup-plant.js');
+        }
+        else if(decoded.storedPermission === 'Administrator' || decoded.storedPermission === 'Dispatch'){
+            protectedPagePath = path.join(publicDir, 'scripts', 'lookup.js');
+        }
+        else{
+            return res.status(401).json({ error: 'Permission not found' });
+        }
+
         res.sendFile(protectedPagePath);
+
     });
 });
 
@@ -228,8 +295,24 @@ app.get('/reports', (req, res) => {
             return res.status(401).json({ error: 'Invalid token' });
         }
 
-        // The user is authenticated; you can handle the protected route logic here.
-        const protectedPagePath = path.join(publicDir, 'reports.html');
+        let protectedPagePath;
+
+        if(decoded.storedPermission === 'Administrator'){
+            protectedPagePath = path.join(publicDir, 'reports.html');
+        }
+        else if(decoded.storedPermission === 'Dispatch'){
+            protectedPagePath = path.join(publicDir, 'reports-dispatch.html');
+        }
+        else if(decoded.storedPermission === 'Plant'){
+            protectedPagePath = path.join(publicDir, 'reports-plant.html');
+        }
+        else if(decoded.storedPermission === 'Viewer'){
+            protectedPagePath = path.join(publicDir, 'reports-viewer.html');
+        }
+        else{
+            return res.status(401).json({ error: 'Permission not found' });
+        }
+
         res.sendFile(protectedPagePath);
     });
 });
@@ -262,8 +345,15 @@ app.get('/administration', (req, res) => {
             return res.status(401).json({ error: 'Invalid token' });
         }
 
-        // The user is authenticated; you can handle the protected route logic here.
-        const protectedPagePath = path.join(publicDir, 'admin.html');
+        let protectedPagePath;
+
+        if(decoded.storedPermission === 'Administrator'){
+            protectedPagePath = path.join(publicDir, 'admin.html');
+        }
+        else{
+            protectedPagePath = path.join(publicDir, 'reports.html');
+        }
+
         res.sendFile(protectedPagePath);
     });
 });
@@ -279,15 +369,21 @@ app.get('/administrationScript', (req, res) => {
             return res.status(401).json({ error: 'Invalid token' });
         }
 
-        // The user is authenticated; you can handle the protected route logic here.
-        const protectedPagePath = path.join(publicDir, 'scripts', 'admin.js');
+        let protectedPagePath;
+
+        if(decoded.storedPermission === 'Administrator'){
+            protectedPagePath = path.join(publicDir, 'scripts', 'admin.js');
+        }
+        else{
+            protectedPagePath = path.join(publicDir, 'scripts', 'reports.js');
+        }
+
         res.sendFile(protectedPagePath);
     });
 });
 
 // Get form data and use it to READ or INPUT to database
 app.post('/submit-read-form', async (req,res) => {
-
     try {
         const { number } = req.body;
         const query = `SELECT c.ConRef, p.ProdName, t.TpName, d.DestCity, d.DestState, cr.CarName1, cu.Custname
@@ -322,13 +418,28 @@ app.post('/submit-read-form', async (req,res) => {
 app.post('/submit-input-form', async (req,res) => {
     try {
 
-        const { liftNumber, loadDateTimeInput, delDateTimeInput, productInput, originInput, carInput, custInput, destCityInput, destStateInput } = req.body;
-        const insertQuery = `
-            INSERT INTO dbo.Main (lift_num, load_date_time, del_date_time, product, origin, cust_name, carrier, destination_city, destination_state)
-            VALUES ('${liftNumber}', '${loadDateTimeInput}', '${delDateTimeInput}', '${productInput}', '${originInput}', '${custInput}', '${carInput}', '${destCityInput}', '${destStateInput}');
-        `;
+        const { liftNumber, loadDateTimeInput, delDateTimeInput, productInput, quantityInput, originInput, carInput, custInput, billToInput, destCityInput, destStateInput } = req.body;
+        let insertQuery = `
+            INSERT INTO dbo.Main (lift_num, load_date_time, del_date_time, product, quantity, origin, cust_name, bill_to, carrier, destination_city, destination_state)
+            VALUES ('${liftNumber}', `;
+        if(!loadDateTimeInput){
+            insertQuery += `${loadDateTimeInput}, `;
+        }
+        else{
+            insertQuery += `'${loadDateTimeInput}', `;
+        }
 
-        const result = await databaseQuery(insertQuery, localConfig);
+        if(!delDateTimeInput){
+            insertQuery += `${delDateTimeInput}, `;
+        }
+        else{
+            insertQuery += `'${delDateTimeInput}', `;
+        }
+        
+        insertQuery += `'${productInput}', '${quantityInput}', '${originInput}', '${custInput}', '${billToInput}', '${carInput}', '${destCityInput}', '${destStateInput}');
+            `;
+
+        await databaseQuery(insertQuery, localConfig);
 
         res.status(200).send('Data inserted successfully.');
     } catch (error) {
@@ -341,9 +452,10 @@ app.post('/read-report', async (req,res) => {
     try {
         const number = req.body.number;
         const dateTime = formatDateTime(req.body.dateTime);
+        const delDateTime = formatDateTime(req.body.delDateTime);
         const query = `SELECT *
         FROM Main
-        WHERE ID = '${number}' OR convert(date, '${dateTime}') = convert(date, load_date_time)`;
+        WHERE ID = '${number}' OR convert(date, '${dateTime}') = convert(date, load_date_time) OR convert(date, '${delDateTime}') = convert(date, del_date_time) OR load_date_time is null`;
         const result = await databaseQuery(query, localConfig);
 
         const responseData = {
@@ -416,6 +528,21 @@ app.post('/update-record', async (req,res) => {
     } catch (error) {
         console.error('Error updating record: ', error);
         res.status(500).json({error: 'Internal server error'});
+    }
+});
+
+app.post('/delete-schedule', async (req,res) => {
+    const id = req.body.number;
+
+    const query = `DELETE FROM Main WHERE ID = '${id}';`;
+
+    try{
+        await databaseQuery(query, localConfig);
+        res.status(200).send('Deleted the record');
+    }
+    catch (error){
+        console.error('Error deleting data: ', error);
+        res.status(500).send('Could not delete record');
     }
 });
 
@@ -492,9 +619,9 @@ app.post('/adminEditUser', async (req, res) => {
                 END
             WHERE username IN ('${username}');`;
 
-        const result = await databaseQuery(query, localConfig); // Error here about connection can't close while it's connecting
+        const response = await databaseQuery(query, localConfig);
 
-        res.status(200).send('Record updated successfully', result);
+        res.json(response);
     }
     else{
         bcrypt.hash(newPassword, 10, (err, hashedPassword) => {
@@ -526,6 +653,8 @@ app.post('/adminEditUser', async (req, res) => {
 });
 
 app.post('/adminDeleteUser', async (req, res) => {
+    
+
     const username = req.body.username;
 
     databaseQuery(`DELETE FROM UserAuthentication WHERE username = '${username}'`, localConfig);

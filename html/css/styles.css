@@ -141,6 +141,18 @@ h1{
     grid-row: 3;
 }
 
+#quantityDiv{
+    grid-column: 2;
+    grid-row: 3;
+}
+    #quantityInput{
+        width:50%;
+        display: inline;
+    }
+    #quantityLabel{
+        display: inline;
+    }
+
 #originDiv{
     grid-column: 1;
     grid-row: 4;
@@ -163,6 +175,11 @@ h1{
 
 #carDiv{
     grid-column: 1;
+    grid-row: 7;
+}
+
+#billDiv{
+    grid-column: 2;
     grid-row: 7;
 }
 
@@ -232,7 +249,7 @@ input[type="submit"] {
 
 #search_input_fields {
     display: grid;
-    grid-template-columns: repeat(3, 25%);
+    grid-template-columns: repeat(4, 20%);
     grid-template-rows: repeat(1, auto);
     row-gap: 2%;
     margin-top: 5%;
@@ -252,13 +269,18 @@ input[type="submit"] {
     grid-row: 1;
 }
 
-#searchContainer #submit {
+#del_date_input_query {
     grid-column: 3;
     grid-row: 1;
 }
 
+#searchContainer #submit {
+    grid-column: 4;
+    grid-row: 1;
+}
+
 #searchContainer #submit input {
-    width: 70%;
+    width: 60%;
 }
 
 /*Reports Page Specific*/
@@ -275,6 +297,10 @@ input[type="submit"] {
 }
 
 /* --------------- For the External Lookup/Reports table --------------- */
+
+#endDateDiv {
+    margin-left: 18px;
+}
 
 .table-container {
     text-align: center;
@@ -306,6 +332,8 @@ input[type="submit"] {
     padding: 8px;
     white-space: nowrap;
 }
+
+
 
 /* Style the table header cells */
 #dynamicTable th {
@@ -370,4 +398,30 @@ input[type="submit"] {
     font-family: 'Cabin';
 }
 
+/*---------- Admin Page Specific Styles ----------*/
 
+#adminButtons {
+    display: grid;
+    grid-template-columns: repeat(4, 12%);
+    grid-template-rows: repeat(1, auto);
+}
+
+#createUser, #listUsers {
+    width: 120px;
+}
+
+#searchUsers {
+    grid-column: span 2;
+}
+
+#tableDiv {
+    margin-top: 2%;
+}
+
+#editUserSubmitButton, #deleteButton {
+    height: 30px;
+    margin-top: 45px;
+    margin-left: 5px;
+    margin-right: 5px;
+    width: auto;
+}

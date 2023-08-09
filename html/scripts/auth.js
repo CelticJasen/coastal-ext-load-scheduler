@@ -1,4 +1,4 @@
-const timeoutDuration = 5 * 60 * 1000; //5 minutes
+const timeoutDuration = 240 * 60 * 1000; //5 minutes
 let timeoutLogin;
 
 function resetTimer(){

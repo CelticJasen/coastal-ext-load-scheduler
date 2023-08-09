@@ -107,12 +107,15 @@ document.getElementById('submit_button').addEventListener('click', async (event)
             const destCities = data.map((row) => row.DestCity);
             const destStates = data.map((row) => row.DestState);
             const carNames = data.map((row) => row.CarName1);
+            const billNames = ['CEC Hired', 'Cust PU']
             const custNames = data.map((row) => row.Custname);
 
             // creates input elements for the generated form
             const final_submit = document.createElement('INPUT');
             const loadDateTime = document.createElement('INPUT');
             const delDateTime = document.createElement('INPUT');
+            const productQuantity = document.createElement('INPUT');
+            const quantityLabel = document.createElement('select');
 
             final_submit.setAttribute('type', 'submit');
             final_submit.setAttribute('class', 'formInput');
@@ -120,8 +123,40 @@ document.getElementById('submit_button').addEventListener('click', async (event)
             final_submit.setAttribute('value', 'Submit');
             loadDateTime.setAttribute('type', 'datetime-local');
             loadDateTime.setAttribute('class', 'formInput');
+            loadDateTime.setAttribute('step', '1800');
+            loadDateTime.setAttribute('required', true);
             delDateTime.setAttribute('type', 'datetime-local');
             delDateTime.setAttribute('class', 'formInput');
+            delDateTime.setAttribute('step', '1800');
+            delDateTime.setAttribute('required', true);
+            productQuantity.setAttribute('type', 'number');
+            productQuantity.setAttribute('class', 'formInput');
+            productQuantity.setAttribute('id', 'quantityInput');
+            quantityLabel.setAttribute('class', 'formInput');
+            quantityLabel.setAttribute('id', 'quantityLabel');
+            
+            const placeholderLabel = document.createElement('option');
+            placeholderLabel.text = 'Select a label';
+            placeholderLabel.setAttribute('disabled', true);
+            placeholderLabel.setAttribute('selected', true);
+            placeholderLabel.setAttribute('hidden', true);
+            const fullLoadOption = document.createElement('option');
+            fullLoadOption.innerHTML = 'Full Load';
+            fullLoadOption.value = 'Full Load';
+            const gallonsOption = document.createElement('option');
+            gallonsOption.innerHTML = 'gal';
+            gallonsOption.value = 'gal';
+            const tonsOption = document.createElement('option');
+            tonsOption.innerHTML = 'tons';
+            tonsOption.value = 'tons';
+
+            quantityLabel.appendChild(placeholderLabel)
+            quantityLabel.appendChild(fullLoadOption);
+            quantityLabel.appendChild(gallonsOption);
+            quantityLabel.appendChild(tonsOption);
+
+
+
 
             const countyInput = document.createElement('select');
             countyInput.setAttribute('class', 'formInput');
@@ -146,11 +181,16 @@ document.getElementById('submit_button').addEventListener('click', async (event)
             sched_form.appendChild(delDateTimeDiv);
 
             sched_form.appendChild(createFormDiv('prodDiv', '<span>*</span>Product:', uniqueData(prodNames)));
+            const quantityDiv = createFormDiv('quantityDiv', '<span>*</span>Quantity:');
+            quantityDiv.appendChild(productQuantity);
+            quantityDiv.appendChild(quantityLabel);
+            sched_form.appendChild(quantityDiv);
             sched_form.appendChild(createFormDiv('originDiv', '<span>*</span>Origin:', uniqueData(tpNames)));
             sched_form.appendChild(createFormDiv('cityDiv', '<span>*</span>City:', uniqueData(destCities)));
             sched_form.appendChild(createFormDiv('stateDiv', '<span>*</span>State:', uniqueData(destStates)));
             sched_form.appendChild(createFormDiv('countyDiv', 'County:', uniqueData(countyInput)));
             sched_form.appendChild(createFormDiv('carDiv', '<span>*</span>Carrier:', uniqueData(carNames)));
+            sched_form.appendChild(createFormDiv('billDiv', '<span>*</span>Bill to:', uniqueData(billNames)));
             sched_form.appendChild(createFormDiv('custDiv', '<span>*</span>Customer:', uniqueData(custNames)));
 
             sched_form.appendChild(final_submit);
@@ -168,11 +208,14 @@ document.getElementById('submit_button').addEventListener('click', async (event)
                 'loadDateTimeInput',
                 'delDateTimeInput',
                 'productInput',
+                'quantityInput',
+                'quantityLabel',
                 'originInput',
                 'destCityInput',
                 'destStateInput',
                 'countyInput',
                 'carInput',
+                'billToInput',
                 'custInput',
             ];
 
@@ -213,18 +256,39 @@ document.getElementById('submit_button').addEventListener('click', async (event)
                 }
 
                 const productInput = document.getElementById('productInput').value;
+                const quantityInput = `${document.getElementById('quantityInput').value} ${document.getElementById('quantityLabel').value}`;
                 const originInput = document.getElementById('originInput').value;
                 const destCityInput = document.getElementById('destCityInput').value;
                 const destStateInput = document.getElementById('destStateInput').value;
                 const carInput = document.getElementById('carInput').value;
+                const billToInput = document.getElementById('billToInput').value;
                 const custInput = document.getElementById('custInput').value;
                 const resultContainer = document.getElementById('schedule_form');
                 const responseText = document.createElement('h1');
                 responseText.setAttribute('id', 'responseText');
 
                 // Check if any required field is empty
-                if([productInput, originInput, destCityInput, destStateInput, carInput, custInput].includes('Select an option') || [productInput, originInput, destCityInput, destStateInput, carInput, custInput].includes('')){
+                if([productInput, quantityInput, originInput, destCityInput, destStateInput, carInput, billToInput, custInput].includes('Select an option') || [productInput, quantityInput, originInput, destCityInput, destStateInput, carInput, billToInput, custInput].includes('') || quantityInput.includes('Select a label')){
                     responseText.innerHTML = '<span>Please populate all required fields</span>';
+                    resultContainer.appendChild(responseText);
+                    throw new Error('Failed to enter data in required field/s.');
+                }
+
+                // Checks if times are at a 30 minute interval 
+                if(loadDateTimeInput.includes(':00') || loadDateTimeInput.includes(':30')){
+                    
+                }
+                else{
+                    responseText.innerHTML = '<span>Only times with a 30-minute interval are valid</span>';
+                    resultContainer.appendChild(responseText);
+                    throw new Error('Failed to enter data in required field/s.');
+                }
+
+                if(delDateTimeInput.includes(':00') || delDateTimeInput.includes(':30')){
+                    
+                }
+                else{
+                    responseText.innerHTML = '<span>Only times with a 30-minute interval are valid</span>';
                     resultContainer.appendChild(responseText);
                     throw new Error('Failed to enter data in required field/s.');
                 }
@@ -234,11 +298,13 @@ document.getElementById('submit_button').addEventListener('click', async (event)
                     loadDateTimeInput,
                     delDateTimeInput,
                     productInput,
+                    quantityInput,
                     originInput,
                     destCityInput,
                     destStateInput,
                     carInput,
                     custInput,
+                    billToInput
                 };
             
                 // Input information to our database
@@ -274,15 +340,23 @@ document.getElementById('submit_button').addEventListener('click', async (event)
 
 newLogoutButton();
 
-document.getElementById('schedulerButton').addEventListener('click', function() {
-    fetchProtectedRoute('Scheduler');
-});
-document.getElementById('lookupButton').addEventListener('click', function(){
-    fetchProtectedRoute('Lookup');
-});
-document.getElementById('reportsButton').addEventListener('click', function(){
-    fetchProtectedRoute('Reports');
-});
-document.getElementById('adminButton').addEventListener('click', function(){
-    fetchProtectedRoute('Administration');
-});
+if(document.getElementById('schedulerButton')){
+    document.getElementById('schedulerButton').addEventListener('click', function() {
+        fetchProtectedRoute('Scheduler');
+    });
+}
+if(document.getElementById('lookupButton')){
+    document.getElementById('lookupButton').addEventListener('click', function(){
+        fetchProtectedRoute('Lookup');
+    });
+}
+if(document.getElementById('reportsButton')){
+    document.getElementById('reportsButton').addEventListener('click', function(){
+        fetchProtectedRoute('Reports');
+    });
+}
+if(document.getElementById('adminButton')){
+    document.getElementById('adminButton').addEventListener('click', function(){
+        fetchProtectedRoute('Administration');
+    });
+}

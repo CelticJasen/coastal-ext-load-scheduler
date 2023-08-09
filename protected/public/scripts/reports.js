@@ -28,7 +28,7 @@ function createTable() {
 
     var headerRow = document.createElement("tr");
     var headers = [
-        "ID", "Lift Number", "Load Date/Time", "Delivery Date/Time", "Product", "Origin", "Customer Name", "Carrier", "Destination City", "Destination State", "Timestamp"
+        "ID", "Lift #", "Load Date/Time", "Delivery Date/Time", "Product", "Qty", "Origin", "Customer Name", "Carrier","Bill To", "Dest. City", "Dest. State", "Timestamp"
     ];
 
     const tableDiv = document.createElement('div');
@@ -139,15 +139,23 @@ document.getElementById('refreshButton').addEventListener('click', function() {
     fetchProtectedRoute('Reports');
 });
 
-document.getElementById('schedulerButton').addEventListener('click', function() {
-    fetchProtectedRoute('Scheduler');
-});
-document.getElementById('lookupButton').addEventListener('click', function(){
-    fetchProtectedRoute('Lookup');
-});
-document.getElementById('reportsButton').addEventListener('click', function(){
-    fetchProtectedRoute('Reports');
-});
-document.getElementById('adminButton').addEventListener('click', function(){
-    fetchProtectedRoute('Administration');
-});
+if(document.getElementById('schedulerButton')){
+    document.getElementById('schedulerButton').addEventListener('click', function() {
+        fetchProtectedRoute('Scheduler');
+    });
+}
+if(document.getElementById('lookupButton')){
+    document.getElementById('lookupButton').addEventListener('click', function(){
+        fetchProtectedRoute('Lookup');
+    });
+}
+if(document.getElementById('reportsButton')){
+    document.getElementById('reportsButton').addEventListener('click', function(){
+        fetchProtectedRoute('Reports');
+    });
+}
+if(document.getElementById('adminButton')){
+    document.getElementById('adminButton').addEventListener('click', function(){
+        fetchProtectedRoute('Administration');
+    });
+}
