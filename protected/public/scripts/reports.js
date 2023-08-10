@@ -14,6 +14,18 @@ function formatDateTime(dateString) {
     return dateString.replace(/T|:\d+\.\d+Z/g, ' ').slice(0, 16);
 }
 
+function formatMilitaryTime(timeIn){
+    const [hoursStr, minutesStr] = timeIn.split(':');
+    const hours = parseInt(hoursStr, 10);
+    const minutes = parseInt(minutesStr, 10);
+
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const standardHours = hours % 12 === 0 ? 12 : hours % 12;
+
+    const timeOut = `${standardHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${period}`;
+    return timeOut;
+}
+
 // Function to dynamically create the table
 function createTable() {
     if(document.getElementById('tableDiv')){
@@ -28,7 +40,7 @@ function createTable() {
 
     var headerRow = document.createElement("tr");
     var headers = [
-        "ID", "Lift #", "Load Date/Time", "Delivery Date/Time", "Product", "Qty", "Origin", "Customer Name", "Carrier","Bill To", "Dest. City", "Dest. State", "Timestamp"
+        "ID", "Lift #", "Load Date","Load Time", "Delivery Date", "Delivery Time", "Product", "Qty", "Origin", "Customer Name", "Carrier","Bill To", "Dest. City", "Dest. State", "Timestamp"
     ];
 
     const tableDiv = document.createElement('div');
@@ -66,17 +78,12 @@ async function populateTable() {
             for (var key in data) {
                 if (data.hasOwnProperty(key)) {
                     var cell = document.createElement("td");
-                    if (key === 'del_date_time' || key === 'load_date_time') {
-                        if(data[key] !== null){
-                            cell.textContent = formatDateTime(data[key]);
-                        }
-                        else{
-                            cell.textContent = '';
-                        }
-                    }
     
-                    else if (key === 'timestamp'){
+                    if (key === 'timestamp'){
                         cell.textContent = formatDateTime(data[key]);
+                    }
+                    else if (key === 'loadTimeFormatted'|| key === 'delTimeFormatted'){
+                        cell.textContent = formatMilitaryTime(data[key]);
                     }
                     else {
                         cell.textContent = data[key];

@@ -277,6 +277,19 @@ document.getElementById('createUser').addEventListener('click', async (event) =>
             password,
             permission
         }
+        if(username.includes(' ') || password.includes(' ')){
+            alert('Credentials cannot contain spaces!');
+            throw new Error('Credential requirement failure');
+        }
+        if(username.length < 3 ){
+            alert('Username must be at least 3 characters long');
+            throw new Error('Credential requirement failure');
+        }
+        if(password.length < 6 ){
+            alert('Password must be at least 6 characters long');
+            throw new Error('Credential requirement failure');
+        }
+
 
         try {
             const response = await fetch('/adminCreateUser', {
@@ -292,7 +305,6 @@ document.getElementById('createUser').addEventListener('click', async (event) =>
             }
 
             const responseData = (await response.text()).valueOf();
-            console.log(responseData);
             if(responseData=='exists'){
                 alert('User already exists!');
             }
@@ -342,6 +354,11 @@ document.getElementById('searchUsersSubmit').addEventListener('click', async (ev
         const newPassword = document.getElementById('passwordEdit').value;
         const newPermission = document.getElementById('permissionEdit').value;
 
+        if(newUsername.includes(' ') || newPassword.includes(' ')){
+            alert('Credentials cannot contain spaces!');
+            throw new Error('Credential requirement failure');
+        }
+
         const payload = {
             username,
             newUsername,
@@ -357,8 +374,13 @@ document.getElementById('searchUsersSubmit').addEventListener('click', async (ev
                 },
                 body: JSON.stringify(payload),
             });
-            
-            alert('User has been edited: ', response);
+            const responseData = (await response.text()).valueOf();
+            if(responseData=='exists'){
+                alert('User already exists!');
+            }
+            else{
+                alert('User has been edited!');
+            }
         }
         catch (error) {
             console.error('Uh oh!', error);
@@ -382,7 +404,7 @@ document.getElementById('searchUsersSubmit').addEventListener('click', async (ev
                     body: JSON.stringify(payload),
                 });
                 
-                alert('USER HAS BEEN DELETED: ', response);
+                alert(`USER (${username}) HAS BEEN DELETED! `);
                 document.getElementById('searchUsersSubmit').click();
             }
             catch (error) {

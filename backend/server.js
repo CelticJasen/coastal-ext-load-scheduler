@@ -83,6 +83,13 @@ function formatDateTime(dateString) {
     return dateString.replace(/T|:\d+\.\d+Z/g, ' ').slice(0, 16);
 }
 
+function formatTime(timeIn){
+    const [hours, minutes] = timeIn.split(':').map(part => parseInt(part, 10));
+    const timeOut = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00.0000000`;
+
+    return timeOut;
+}
+
 function generateToken(userId, storedPermission) {
     return jwt.sign({ userId, storedPermission }, secretKey, { expiresIn: '9h' });
 }
@@ -417,28 +424,29 @@ app.post('/submit-read-form', async (req,res) => {
 
 app.post('/submit-input-form', async (req,res) => {
     try {
-
-        const { liftNumber, loadDateTimeInput, delDateTimeInput, productInput, quantityInput, originInput, carInput, custInput, billToInput, destCityInput, destStateInput } = req.body;
+        const { liftNumber, loadDateInput, loadTimeInput, delDateInput, delTimeInput, productInput, quantityInput, originInput, carInput, custInput, billToInput, destCityInput, destStateInput } = req.body;
         let insertQuery = `
-            INSERT INTO dbo.Main (lift_num, load_date_time, del_date_time, product, quantity, origin, cust_name, bill_to, carrier, destination_city, destination_state)
-            VALUES ('${liftNumber}', `;
-        if(!loadDateTimeInput){
-            insertQuery += `${loadDateTimeInput}, `;
+            INSERT INTO dbo.Main (lift_num, load_date, load_time, del_date, del_time, product, quantity, origin, cust_name, bill_to, carrier, destination_city, destination_state)
+            VALUES ('${liftNumber}', '${loadDateInput}',`;
+        if(!loadTimeInput){
+            insertQuery += `${loadTimeInput}, `;
         }
         else{
-            insertQuery += `'${loadDateTimeInput}', `;
+            insertQuery += `'${loadTimeInput}', `;
         }
 
-        if(!delDateTimeInput){
-            insertQuery += `${delDateTimeInput}, `;
+        insertQuery += `'${delDateInput}',`;
+
+        if(!delTimeInput){
+            insertQuery += `${delTimeInput}, `;
         }
         else{
-            insertQuery += `'${delDateTimeInput}', `;
+            insertQuery += `'${delTimeInput}', `;
         }
         
         insertQuery += `'${productInput}', '${quantityInput}', '${originInput}', '${custInput}', '${billToInput}', '${carInput}', '${destCityInput}', '${destStateInput}');
             `;
-
+        
         await databaseQuery(insertQuery, localConfig);
 
         res.status(200).send('Data inserted successfully.');
@@ -451,16 +459,18 @@ app.post('/submit-input-form', async (req,res) => {
 app.post('/read-report', async (req,res) => {
     try {
         const number = req.body.number;
-        const dateTime = formatDateTime(req.body.dateTime);
-        const delDateTime = formatDateTime(req.body.delDateTime);
-        const query = `SELECT *
+        const date = formatDateTime(req.body.date);
+        const delDate = formatDateTime(req.body.delDate);
+        const query = `SELECT ID, lift_num, CONVERT(varchar, load_date, 120) AS convertedLoadDate, CONVERT(varchar(5), load_time, 108) AS loadTimeFormatted, CONVERT(varchar, del_date, 120) AS convertedDelDate, CONVERT(varchar(5), del_time, 108) AS delTimeFormatted, product, quantity, origin, cust_name, carrier, bill_to, destination_city, destination_state, timestamp
         FROM Main
-        WHERE ID = '${number}' OR convert(date, '${dateTime}') = convert(date, load_date_time) OR convert(date, '${delDateTime}') = convert(date, del_date_time) OR load_date_time is null`;
+        WHERE ID = '${number}' OR CONVERT(date, '${date}') = CONVERT(date, load_date) OR CONVERT(date, '${delDate}') = CONVERT(date, del_date)`;
         const result = await databaseQuery(query, localConfig);
 
         const responseData = {
             result: result
         };
+        
+        console.log(responseData);
 
         res.json(responseData);
     } catch (error) {
@@ -474,9 +484,9 @@ app.post('/read-reports-page', async (req, res) => {
 
     try {
         const query = `
-            SELECT *
+            SELECT ID, lift_num, CONVERT(varchar, load_date, 120) AS convertedLoadDate, CONVERT(varchar(5), load_time, 108) AS loadTimeFormatted, CONVERT(varchar, del_date, 120) AS convertedDelDate, CONVERT(varchar(5), del_time, 108) AS delTimeFormatted, product, quantity, origin, cust_name, carrier, bill_to, destination_city, destination_state, timestamp
             FROM Main
-            WHERE load_date_time BETWEEN '${startDate}' AND DATEADD(DAY, 1, '${endDate}')`;
+            WHERE load_date BETWEEN '${startDate}' AND '${endDate}'`;
         const result = await databaseQuery(query, localConfig);
 
         const responseData = {
@@ -493,14 +503,19 @@ app.post('/read-reports-page', async (req, res) => {
 app.post('/update-record', async (req,res) => {
     try {
 
-        var loadDateTimeQuery = '';
-        var delDateTimeQuery = '';
+        var loadDateQuery = '';
+        var delDateQuery = '';
+        var loadTimeQuery = '';
+        var delTimeQuery = '';
         var queryEnd = '';
         const receivedArray = req.body;
         
         for (i=0; i< receivedArray.length;i++){
-            loadDateTimeQuery += `WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].loadDateTime}'`;
-            delDateTimeQuery += `WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].delDateTime}'`;
+            loadDateQuery += `WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].loadDate}'`;
+            loadTimeQuery += `WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].loadTime}'`;
+            delDateQuery += `WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].delDate}'`;
+            delTimeQuery += `WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].delTime}'`;
+
             if(i+1 == receivedArray.length){
                 queryEnd += `'${receivedArray[i].id}'`;
             }
@@ -511,13 +526,21 @@ app.post('/update-record', async (req,res) => {
 
         const query = `
         UPDATE Main
-        SET load_date_time = 
+        SET load_date = 
             CASE ID
-                ${loadDateTimeQuery}
+                ${loadDateQuery}
             END,
-        del_date_time =
+        load_time = 
             CASE ID
-                ${delDateTimeQuery}
+                ${loadTimeQuery}
+            END,
+        del_time = 
+            CASE ID
+                ${loadTimeQuery}
+            END,
+        del_date =
+            CASE ID
+                ${delDateQuery}
             END
         WHERE ID IN (${queryEnd});
         `;
@@ -584,7 +607,7 @@ app.post('/adminListUsers', async (req, res) => {
 
 app.post('/adminListEditUser', async (req, res) => {
     const user = req.body.user
-
+    
     try {
         const query = `
             SELECT [username], [permission]
@@ -606,49 +629,56 @@ app.post('/adminEditUser', async (req, res) => {
     const { username, newUsername, newPermission, newPassword } = req.body;
     let query;
 
-    if(newPassword === ''){
-        query = `
-            UPDATE UserAuthentication
-            SET permission = 
-                CASE username
-                    WHEN '${username}' THEN '${newPermission}'
-                END,
-            username =
-                CASE username
-                    WHEN '${username}' THEN '${newUsername}'
-                END
-            WHERE username IN ('${username}');`;
-
-        const response = await databaseQuery(query, localConfig);
-
-        res.json(response);
+    if(!(await checkExistingUser(newUsername))){
+        if(newPassword === ''){
+            query = `
+                UPDATE UserAuthentication
+                SET permission = 
+                    CASE username
+                        WHEN '${username}' THEN '${newPermission}'
+                    END,
+                username =
+                    CASE username
+                        WHEN '${username}' THEN '${newUsername}'
+                    END
+                WHERE username IN ('${username}');`;
+    
+            const response = await databaseQuery(query, localConfig);
+    
+            res.json(response);
+        }
+        else{
+            bcrypt.hash(newPassword, 10, (err, hashedPassword) => {
+                if (err) {
+                    console.error('Error hashing the password:', err);
+                }
+                else {
+                    databaseQuery(`
+                        UPDATE UserAuthentication
+                        SET permission = 
+                            CASE username
+                                WHEN '${username}' THEN '${newPermission}'
+                            END,
+                        password =
+                            CASE username
+                                WHEN '${username}' THEN '${hashedPassword}'
+                            END,
+                        username =
+                            CASE username
+                                WHEN '${username}' THEN '${newUsername}'
+                            END
+                        WHERE username IN ('${username}');`, localConfig);
+                }
+            });
+    
+            res.status(200).send('Record updated successfully');
+        }
     }
     else{
-        bcrypt.hash(newPassword, 10, (err, hashedPassword) => {
-            if (err) {
-                console.error('Error hashing the password:', err);
-            }
-            else {
-                databaseQuery(`
-                    UPDATE UserAuthentication
-                    SET permission = 
-                        CASE username
-                            WHEN '${username}' THEN '${newPermission}'
-                        END,
-                    password =
-                        CASE username
-                            WHEN '${username}' THEN '${hashedPassword}'
-                        END,
-                    username =
-                        CASE username
-                            WHEN '${username}' THEN '${newUsername}'
-                        END
-                    WHERE username IN ('${username}');`, localConfig);
-            }
-        });
-
-        res.status(200).send('Record updated successfully');
+        res.status(200).send('exists');
     }
+
+    
 
 });
 

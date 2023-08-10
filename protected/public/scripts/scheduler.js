@@ -62,6 +62,25 @@ function formatDateTime(dateString) {
     return dateString.replace(/T|:\d+\.\d+Z/g, ' ').slice(0, 16);
 }
 
+function roundTimeToHalfHour(input) {
+    const timeString = input.value;
+    let [hours, minutes] = timeString.split(':').map(Number);
+    if (hours < 10){
+        hours = `0${hours}`;
+    }
+    console.log(hours);
+    if (minutes >= 0 && minutes < 30) {
+        input.value = `${hours}:00`;
+    } 
+    else if (minutes >= 30 && minutes <= 59) {
+        input.value = `${hours}:30`;
+    } 
+    else {
+        const roundedHours = hours + 1;
+        input.value = `${roundedHours}:00`;
+    }
+}
+  
 document.getElementById('submit_button').addEventListener('click', async (event) => {
     event.preventDefault();
   
@@ -112,8 +131,10 @@ document.getElementById('submit_button').addEventListener('click', async (event)
 
             // creates input elements for the generated form
             const final_submit = document.createElement('INPUT');
-            const loadDateTime = document.createElement('INPUT');
-            const delDateTime = document.createElement('INPUT');
+            const loadDate = document.createElement('INPUT');
+            const loadTime = document.createElement('INPUT');
+            const delDate = document.createElement('INPUT');
+            const delTime = document.createElement('INPUT');
             const productQuantity = document.createElement('INPUT');
             const quantityLabel = document.createElement('select');
 
@@ -121,14 +142,25 @@ document.getElementById('submit_button').addEventListener('click', async (event)
             final_submit.setAttribute('class', 'formInput');
             final_submit.setAttribute('id', 'formSubmit');
             final_submit.setAttribute('value', 'Submit');
-            loadDateTime.setAttribute('type', 'datetime-local');
-            loadDateTime.setAttribute('class', 'formInput');
-            loadDateTime.setAttribute('step', '1800');
-            loadDateTime.setAttribute('required', true);
-            delDateTime.setAttribute('type', 'datetime-local');
-            delDateTime.setAttribute('class', 'formInput');
-            delDateTime.setAttribute('step', '1800');
-            delDateTime.setAttribute('required', true);
+
+            loadDate.setAttribute('type', 'date');
+            loadDate.setAttribute('class', 'formInput');
+            loadDate.setAttribute('required', true);
+
+            loadTime.setAttribute('type', 'time');
+            loadTime.setAttribute('class', 'formInput');
+            loadTime.setAttribute('step', '1800');
+            loadTime.setAttribute('onblur','roundTimeToHalfHour(this)');
+
+            delDate.setAttribute('type', 'date');
+            delDate.setAttribute('class', 'formInput');
+            delDate.setAttribute('required', true);
+
+            delTime.setAttribute('type', 'time');
+            delTime.setAttribute('class', 'formInput');
+            delTime.setAttribute('step', '1800');
+            delTime.setAttribute('onblur','roundTimeToHalfHour(this)');
+
             productQuantity.setAttribute('type', 'number');
             productQuantity.setAttribute('class', 'formInput');
             productQuantity.setAttribute('id', 'quantityInput');
@@ -136,19 +168,19 @@ document.getElementById('submit_button').addEventListener('click', async (event)
             quantityLabel.setAttribute('id', 'quantityLabel');
             
             const placeholderLabel = document.createElement('option');
-            placeholderLabel.text = 'Select a label';
-            placeholderLabel.setAttribute('disabled', true);
-            placeholderLabel.setAttribute('selected', true);
-            placeholderLabel.setAttribute('hidden', true);
+                placeholderLabel.text = 'Select a label';
+                placeholderLabel.setAttribute('disabled', true);
+                placeholderLabel.setAttribute('selected', true);
+                placeholderLabel.setAttribute('hidden', true);
             const fullLoadOption = document.createElement('option');
-            fullLoadOption.innerHTML = 'Full Load';
-            fullLoadOption.value = 'Full Load';
+                fullLoadOption.innerHTML = 'Full Load';
+                fullLoadOption.value = 'Full Load';
             const gallonsOption = document.createElement('option');
-            gallonsOption.innerHTML = 'gal';
-            gallonsOption.value = 'gal';
+                gallonsOption.innerHTML = 'gal';
+                gallonsOption.value = 'gal';
             const tonsOption = document.createElement('option');
-            tonsOption.innerHTML = 'tons';
-            tonsOption.value = 'tons';
+                tonsOption.innerHTML = 'tons';
+                tonsOption.value = 'tons';
 
             quantityLabel.appendChild(placeholderLabel)
             quantityLabel.appendChild(fullLoadOption);
@@ -162,7 +194,7 @@ document.getElementById('submit_button').addEventListener('click', async (event)
             countyInput.setAttribute('class', 'formInput');
 
             // labels for input fields
-            const labelNames = ['liftLabel', 'loadDateTimeLabel', 'delDateTimeLabel', 'prodLabel', 'originLabel', 'destLabel', 'stateLabel', 'countyLabel', 'carLabel', 'custLabel'];
+            const labelNames = ['liftLabel', 'loadDateLabel', 'delDateLabel', 'prodLabel', 'originLabel', 'destLabel', 'stateLabel', 'countyLabel', 'carLabel', 'custLabel'];
             const labels = {};
 
             for (const labelName of labelNames) {
@@ -173,11 +205,13 @@ document.getElementById('submit_button').addEventListener('click', async (event)
             sched_form.appendChild(createFormDiv('liftDiv', 'Lift Number:', uniqueData(conRefs)));
 
             const loadDateTimeDiv = createFormDiv('loadDateTimeDiv', 'Load Date & Time:');
-            loadDateTimeDiv.appendChild(loadDateTime);
+            loadDateTimeDiv.appendChild(loadDate);
+            loadDateTimeDiv.appendChild(loadTime);
             sched_form.appendChild(loadDateTimeDiv);
 
             const delDateTimeDiv = createFormDiv('delDateTimeDiv', 'Delivery Date & Time:');
-            delDateTimeDiv.appendChild(delDateTime);
+            delDateTimeDiv.appendChild(delDate);
+            delDateTimeDiv.appendChild(delTime);
             sched_form.appendChild(delDateTimeDiv);
 
             sched_form.appendChild(createFormDiv('prodDiv', '<span>*</span>Product:', uniqueData(prodNames)));
@@ -205,8 +239,10 @@ document.getElementById('submit_button').addEventListener('click', async (event)
             const children = theForm.querySelectorAll('.formInput');
             const inputNames = [
                 'liftNumber',
-                'loadDateTimeInput',
-                'delDateTimeInput',
+                'loadDateInput',
+                'loadTimeInput',
+                'delDateInput',
+                'delTimeInput',
                 'productInput',
                 'quantityInput',
                 'quantityLabel',
@@ -245,14 +281,16 @@ document.getElementById('submit_button').addEventListener('click', async (event)
 
                 // get form inputs
                 const liftNumber = conRefs[0];
-                let loadDateTimeInput = formatDateTime(document.getElementById('loadDateTimeInput').value);
-                if(loadDateTimeInput == ''){
-                    loadDateTimeInput = null;
+                const loadDateInput = document.getElementById('loadDateInput').value;
+                let loadTimeInput = document.getElementById('loadTimeInput').value;
+                if(loadTimeInput == ''){
+                    loadTimeInput = null;
                 }
 
-                let delDateTimeInput = formatDateTime(document.getElementById('delDateTimeInput').value);
-                if(delDateTimeInput == ''){
-                    delDateTimeInput = null;
+                const delDateInput = document.getElementById('delDateInput').value;
+                let delTimeInput = document.getElementById('delTimeInput').value;
+                if(delTimeInput == ''){
+                    delTimeInput = null;
                 }
 
                 const productInput = document.getElementById('productInput').value;
@@ -268,14 +306,14 @@ document.getElementById('submit_button').addEventListener('click', async (event)
                 responseText.setAttribute('id', 'responseText');
 
                 // Check if any required field is empty
-                if([productInput, quantityInput, originInput, destCityInput, destStateInput, carInput, billToInput, custInput].includes('Select an option') || [productInput, quantityInput, originInput, destCityInput, destStateInput, carInput, billToInput, custInput].includes('') || quantityInput.includes('Select a label')){
+                if([productInput, quantityInput, originInput, destCityInput, destStateInput, carInput, billToInput, custInput].includes('Select an option') || [loadDateInput, delDateInput, productInput, quantityInput, originInput, destCityInput, destStateInput, carInput, billToInput, custInput].includes('') || quantityInput.includes('Select a label')){
                     responseText.innerHTML = '<span>Please populate all required fields</span>';
                     resultContainer.appendChild(responseText);
-                    throw new Error('Failed to enter data in required field/s.');
+                    throw new Error('Failed to enter data in required field(s).');
                 }
 
                 // Checks if times are at a 30 minute interval 
-                if(loadDateTimeInput.includes(':00') || loadDateTimeInput.includes(':30')){
+                if(loadTimeInput.includes(':00') || loadTimeInput.includes(':30')){
                     
                 }
                 else{
@@ -284,7 +322,7 @@ document.getElementById('submit_button').addEventListener('click', async (event)
                     throw new Error('Failed to enter data in required field/s.');
                 }
 
-                if(delDateTimeInput.includes(':00') || delDateTimeInput.includes(':30')){
+                if(delTimeInput.includes(':00') || delTimeInput.includes(':30')){
                     
                 }
                 else{
@@ -295,8 +333,10 @@ document.getElementById('submit_button').addEventListener('click', async (event)
 
                 const payload = {
                     liftNumber,
-                    loadDateTimeInput,
-                    delDateTimeInput,
+                    loadDateInput,
+                    loadTimeInput,
+                    delDateInput,
+                    delTimeInput,
                     productInput,
                     quantityInput,
                     originInput,
