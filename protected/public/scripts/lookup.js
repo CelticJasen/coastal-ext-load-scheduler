@@ -1,27 +1,13 @@
-function formatDateTime(dateString) {
-    return dateString.replace(/T|:\d+\.\d+Z/g, ' ').slice(0, 16);
-}
-function formatTime(timeIn){
-    const [hours, minutes, seconds] = timeIn.split(':').map(part => parseInt(part, 10));
-    const timeOut = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-    return timeOut;
-}
-/* function formatDate(dateIn){
-    const date = new Date(dateIn);
-    const dateOut = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
-    return dateOut;
-} */
-
 function roundTimeToHalfHour(input) {
     const timeString = input.value;
     let [hours, minutes] = timeString.split(':').map(Number);
     if (hours < 10){
         hours = `0${hours}`;
     }
-    console.log(hours);
+
     if (minutes >= 0 && minutes < 30) {
         input.value = `${hours}:00`;
-    } 
+    }
     else if (minutes >= 30 && minutes <= 59) {
         input.value = `${hours}:30`;
     } 
@@ -89,14 +75,16 @@ function createTable() {
             const delDate = row.querySelector('#delDateEdit').value;
             const loadTime = row.querySelector('#loadTimeEdit').value;
             const delTime = row.querySelector('#delTimeEdit').value;
-    
+            const quantity = row.querySelector('#quantityEdit').value;
+
     
             const payload = {
                 id,
                 loadDate,
                 loadTime,
                 delDate,
-                delTime
+                delTime,
+                quantity
             };
             editArray.push(payload);
         });
@@ -140,10 +128,13 @@ function populateTable(responseData) {
         loadTimeEdit.setAttribute('id', 'loadTimeEdit');
         loadTimeEdit.setAttribute('type', 'time');
         loadTimeEdit.setAttribute('onblur', 'roundTimeToHalfHour(this)')
+        var quantityEdit = document.createElement('input');
+        quantityEdit.setAttribute('id', 'quantityEdit');
+        quantityEdit.setAttribute('type', 'text');
 
         let deleteTD = document.createElement('td');
         const deleteButton = document.createElement('button');
-        deleteButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><style>svg{fill:#000000}</style><path d="M135.2 17.7C140.6 6.8 151.7 0 163.8 0H284.2c12.1 0 23.2 6.8 28.6 17.7L320 32h96c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 96 0 81.7 0 64S14.3 32 32 32h96l7.2-14.3zM32 128H416V448c0 35.3-28.7 64-64 64H96c-35.3 0-64-28.7-64-64V128zm96 64c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16z"/></svg>';
+        deleteButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512"><style>svg{fill:#000000}</style><path d="M135.2 17.7C140.6 6.8 151.7 0 163.8 0H284.2c12.1 0 23.2 6.8 28.6 17.7L320 32h96c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 96 0 81.7 0 64S14.3 32 32 32h96l7.2-14.3zM32 128H416V448c0 35.3-28.7 64-64 64H96c-35.3 0-64-28.7-64-64V128zm96 64c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16z"/></svg>';
 
         var delDateEdit = document.createElement('input');
         delDateEdit.setAttribute('id', 'delDateEdit');
@@ -161,14 +152,13 @@ function populateTable(responseData) {
                 if (key === 'convertedDelDate') {
                     if(data[key] !== null){
                         delDateEdit.setAttribute('value', data[key]);
-                        console.log(data[key]);
                         delDateEdit.setAttribute('readonly', true);
                     }
                     cell.appendChild(delDateEdit);
                 }
                 else if (key === 'delTimeFormatted'){
                     if(data[key] !== null){
-                        delTimeEdit.setAttribute('value', formatTime(data[key]));
+                        delTimeEdit.setAttribute('value', data[key]);
                     }
                     cell.appendChild(delTimeEdit);
                 }
@@ -180,9 +170,7 @@ function populateTable(responseData) {
                 }
                 else if (key === 'loadTimeFormatted'){
                     if(data[key] !== null){
-                        loadTimeEdit.setAttribute('value', formatTime(data[key]));
-                        console.log(data[key]);
-                        console.log(formatTime(data[key]));
+                        loadTimeEdit.setAttribute('value', data[key]);
                     }
                     cell.appendChild(loadTimeEdit);
                 }
@@ -191,9 +179,12 @@ function populateTable(responseData) {
                     cell.textContent = data[key];
                     deleteButton.setAttribute('data-id', data[key]);
                 }
-                
                 else if (key === 'timestamp'){
-                    cell.textContent = formatDateTime(data[key]);
+                    cell.textContent = data[key];
+                }
+                else if(key === 'quantity'){
+                    quantityEdit.setAttribute('value', data[key]);
+                    cell.appendChild(quantityEdit);
                 }
                 else {
                     cell.textContent = data[key];

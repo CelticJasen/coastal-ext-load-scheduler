@@ -1,27 +1,13 @@
-function formatDateTime(dateString) {
-    return dateString.replace(/T|:\d+\.\d+Z/g, ' ').slice(0, 16);
-}
-function formatTime(timeIn){
-    const [hours, minutes, seconds] = timeIn.split(':').map(part => parseInt(part, 10));
-    const timeOut = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-    return timeOut;
-}
-/* function formatDate(dateIn){
-    const date = new Date(dateIn);
-    const dateOut = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
-    return dateOut;
-} */
-
 function roundTimeToHalfHour(input) {
     const timeString = input.value;
     let [hours, minutes] = timeString.split(':').map(Number);
     if (hours < 10){
         hours = `0${hours}`;
     }
-    console.log(hours);
+
     if (minutes >= 0 && minutes < 30) {
         input.value = `${hours}:00`;
-    } 
+    }
     else if (minutes >= 30 && minutes <= 59) {
         input.value = `${hours}:30`;
     } 
@@ -41,7 +27,7 @@ function createTable() {
 
     var headerRow = document.createElement('tr');
     var headers = [
-        'ID', 'Lift #', 'Load Date', 'Load Time', 'Delivery Date', 'Delivery Time', 'Product', 'Qty', 'Origin', 'Customer Name', 'Carrier', 'Bill To', 'Dest. City', 'Dest. State', 'Timestamp'
+        'ID', 'Lift #', 'Load Date', 'Load Time', 'Delivery Date', 'Delivery Time', 'Product', 'Qty', 'Origin', 'Customer Name', 'Carrier', 'Bill To', 'Dest. City', 'Dest. State'
     ];
 
     const tableDiv = document.createElement('div');
@@ -89,14 +75,16 @@ function createTable() {
             const delDate = row.querySelector('#delDateEdit').value;
             const loadTime = row.querySelector('#loadTimeEdit').value;
             const delTime = row.querySelector('#delTimeEdit').value;
-    
+            const quantity = row.querySelector('#quantityEdit').value;
+
     
             const payload = {
                 id,
                 loadDate,
                 loadTime,
                 delDate,
-                delTime
+                delTime,
+                quantity
             };
             editArray.push(payload);
         });
@@ -140,6 +128,9 @@ function populateTable(responseData) {
         loadTimeEdit.setAttribute('id', 'loadTimeEdit');
         loadTimeEdit.setAttribute('type', 'time');
         loadTimeEdit.setAttribute('onblur', 'roundTimeToHalfHour(this)')
+        var quantityEdit = document.createElement('input');
+        quantityEdit.setAttribute('id', 'quantityEdit');
+        quantityEdit.setAttribute('type', 'text');
 
         var delDateEdit = document.createElement('input');
         delDateEdit.setAttribute('id', 'delDateEdit');
@@ -152,19 +143,18 @@ function populateTable(responseData) {
 
         // Loop through each property in the data object and create table cells
         for (var key in data) {
-            if (data.hasOwnProperty(key)) {
+            if (data.hasOwnProperty(key) && key != 'timestamp') {
                 var cell = document.createElement("td");
                 if (key === 'convertedDelDate') {
                     if(data[key] !== null){
                         delDateEdit.setAttribute('value', data[key]);
-                        console.log(data[key]);
                         delDateEdit.setAttribute('readonly', true);
                     }
                     cell.appendChild(delDateEdit);
                 }
                 else if (key === 'delTimeFormatted'){
                     if(data[key] !== null){
-                        delTimeEdit.setAttribute('value', formatTime(data[key]));
+                        delTimeEdit.setAttribute('value', data[key]);
                     }
                     cell.appendChild(delTimeEdit);
                 }
@@ -176,9 +166,7 @@ function populateTable(responseData) {
                 }
                 else if (key === 'loadTimeFormatted'){
                     if(data[key] !== null){
-                        loadTimeEdit.setAttribute('value', formatTime(data[key]));
-                        console.log(data[key]);
-                        console.log(formatTime(data[key]));
+                        loadTimeEdit.setAttribute('value', data[key]);
                     }
                     cell.appendChild(loadTimeEdit);
                 }
@@ -186,9 +174,9 @@ function populateTable(responseData) {
                     cell.id = 'id';
                     cell.textContent = data[key];
                 }
-                
-                else if (key === 'timestamp'){
-                    cell.textContent = formatDateTime(data[key]);
+                else if(key === 'quantity'){
+                    quantityEdit.setAttribute('value', data[key]);
+                    cell.appendChild(quantityEdit);
                 }
                 else {
                     cell.textContent = data[key];
@@ -197,7 +185,7 @@ function populateTable(responseData) {
 
             }
         }
-        
+        tableBody.appendChild(row);
     });
 }
 

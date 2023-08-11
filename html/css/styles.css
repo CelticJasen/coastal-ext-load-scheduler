@@ -322,6 +322,10 @@ input[type="submit"] {
     justify-content: center;
     margin-bottom: 2%;
 }
+#tableDiv input{
+    font-size: 0.725vw;
+    width: 6vw;
+}
 
 #dynamicTable {
     width: 80%;
@@ -334,6 +338,7 @@ input[type="submit"] {
 
 #dynamicTable th,
 #dynamicTable td {
+    font-size: .75vw;
     border: 1px solid #ddd;
     padding: 8px;
     white-space: nowrap;

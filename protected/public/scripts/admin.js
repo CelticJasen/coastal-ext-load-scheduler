@@ -126,6 +126,8 @@ async function populateEditTable(user){
             body: JSON.stringify(payload),
         });
         const responseData = await response.json();
+        console.log(responseData);
+
         //console.log(responseData);
         responseData.result.forEach(function (data) {
             var row = document.createElement('tr');
@@ -159,12 +161,19 @@ async function populateEditTable(user){
                         const viewerOption = document.createElement('option');
                         viewerOption.innerHTML = 'Viewer';
                         viewerOption.value = 'Viewer';
-                    
+            
                         dropdown.appendChild(adminOption);
                         dropdown.appendChild(dispatchOption);
                         dropdown.appendChild(plantOption);
                         dropdown.appendChild(viewerOption);
                         cell.appendChild(dropdown);
+
+                        for (let i = 0; i < dropdown.options.length; i++){
+                            if (dropdown.options[i].value === data[key]){
+                                dropdown.options[i].selected = true;
+                                break;
+                            };
+                        }
                     }
 
                     row.appendChild(cell);
@@ -356,6 +365,16 @@ document.getElementById('searchUsersSubmit').addEventListener('click', async (ev
 
         if(newUsername.includes(' ') || newPassword.includes(' ')){
             alert('Credentials cannot contain spaces!');
+            throw new Error('Credential requirement failure');
+        }
+        if(newUsername.length < 3 ){
+            alert('Username must be at least 3 characters long');
+            throw new Error('Credential requirement failure');
+        }
+        if(newPassword == ''){
+        }
+        else if(newPassword.length < 6 ){
+            alert('Password must be at least 6 characters long');
             throw new Error('Credential requirement failure');
         }
 

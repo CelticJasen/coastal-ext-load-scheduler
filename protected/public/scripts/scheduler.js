@@ -68,7 +68,6 @@ function roundTimeToHalfHour(input) {
     if (hours < 10){
         hours = `0${hours}`;
     }
-    console.log(hours);
     if (minutes >= 0 && minutes < 30) {
         input.value = `${hours}:00`;
     } 
@@ -294,6 +293,7 @@ document.getElementById('submit_button').addEventListener('click', async (event)
                 }
 
                 const productInput = document.getElementById('productInput').value;
+                const prodArray = uniqueData(prodNames);
                 const quantityInput = `${document.getElementById('quantityInput').value} ${document.getElementById('quantityLabel').value}`;
                 const originInput = document.getElementById('originInput').value;
                 const destCityInput = document.getElementById('destCityInput').value;
@@ -313,7 +313,9 @@ document.getElementById('submit_button').addEventListener('click', async (event)
                 }
 
                 // Checks if times are at a 30 minute interval 
-                if(loadTimeInput.includes(':00') || loadTimeInput.includes(':30')){
+                if(loadTimeInput == null){
+                }
+                else if(loadTimeInput.includes(':00') || loadTimeInput.includes(':30') || loadTimeInput == null){
                     
                 }
                 else{
@@ -322,7 +324,9 @@ document.getElementById('submit_button').addEventListener('click', async (event)
                     throw new Error('Failed to enter data in required field/s.');
                 }
 
-                if(delTimeInput.includes(':00') || delTimeInput.includes(':30')){
+                if(delTimeInput == null){
+                }
+                else if(delTimeInput.includes(':00') || delTimeInput.includes(':30')){
                     
                 }
                 else{
@@ -330,7 +334,6 @@ document.getElementById('submit_button').addEventListener('click', async (event)
                     resultContainer.appendChild(responseText);
                     throw new Error('Failed to enter data in required field/s.');
                 }
-
                 const payload = {
                     liftNumber,
                     loadDateInput,
@@ -338,6 +341,7 @@ document.getElementById('submit_button').addEventListener('click', async (event)
                     delDateInput,
                     delTimeInput,
                     productInput,
+                    prodArray,
                     quantityInput,
                     originInput,
                     destCityInput,
@@ -346,7 +350,7 @@ document.getElementById('submit_button').addEventListener('click', async (event)
                     custInput,
                     billToInput
                 };
-            
+                
                 // Input information to our database
                 try {
                     const response = await fetch('/submit-input-form', {

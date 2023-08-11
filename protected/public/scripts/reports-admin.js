@@ -40,7 +40,7 @@ function createTable() {
 
     var headerRow = document.createElement("tr");
     var headers = [
-        "ID", "Lift #", "Load Date","Load Time", "Delivery Date", "Delivery Time", "Product", "Qty", "Origin", "Customer Name", "Carrier","Bill To", "Dest. City", "Dest. State"
+        "ID", "Lift #", "Load Date","Load Time", "Delivery Date", "Delivery Time", "Product", "Qty", "Origin", "Customer Name", "Carrier","Bill To", "Dest. City", "Dest. State", "Timestamp"
     ];
 
     const tableDiv = document.createElement('div');
@@ -76,11 +76,13 @@ async function populateTable() {
             var row = document.createElement("tr");
             // Loop through each property in the data object and create table cells
             for (var key in data) {
-                console.log(key);
-                if (data.hasOwnProperty(key) && key != 'timestamp') {
+                if (data.hasOwnProperty(key)) {
                     var cell = document.createElement("td");
     
-                    if (key === 'loadTimeFormatted'){
+                    if (key === 'timestamp'){
+                        cell.textContent = formatDateTime(data[key]);
+                    }
+                    else if (key === 'loadTimeFormatted'){
                         if(data[key] !=null){
                             cell.textContent = formatMilitaryTime(data[key]);
                         }

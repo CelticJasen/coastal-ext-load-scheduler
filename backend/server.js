@@ -334,9 +334,15 @@ app.get('/reportsScript', (req, res) => {
         if (err) {
             return res.status(401).json({ error: 'Invalid token' });
         }
-
         // The user is authenticated; you can handle the protected route logic here.
-        const protectedPagePath = path.join(publicDir, 'scripts', 'reports.js');
+        let protectedPagePath;
+        if(decoded.storedPermission === 'Administrator'|| decoded.storedPermission === 'Dispatch'){
+            protectedPagePath = path.join(publicDir, 'scripts', 'reports-admin.js');
+        }
+        else{
+            protectedPagePath = path.join(publicDir, 'scripts', 'reports.js');
+        }
+
         res.sendFile(protectedPagePath);
     });
 });
@@ -424,9 +430,9 @@ app.post('/submit-read-form', async (req,res) => {
 
 app.post('/submit-input-form', async (req,res) => {
     try {
-        const { liftNumber, loadDateInput, loadTimeInput, delDateInput, delTimeInput, productInput, quantityInput, originInput, carInput, custInput, billToInput, destCityInput, destStateInput } = req.body;
+        const { liftNumber, loadDateInput, loadTimeInput, delDateInput, delTimeInput, productInput, prodArray, quantityInput, originInput, carInput, custInput, billToInput, destCityInput, destStateInput } = req.body;
         let insertQuery = `
-            INSERT INTO dbo.Main (lift_num, load_date, load_time, del_date, del_time, product, quantity, origin, cust_name, bill_to, carrier, destination_city, destination_state)
+            INSERT INTO dbo.Main (lift_num, load_date, load_time, del_date, del_time, product, product_array, quantity, origin, cust_name, bill_to, carrier, destination_city, destination_state)
             VALUES ('${liftNumber}', '${loadDateInput}',`;
         if(!loadTimeInput){
             insertQuery += `${loadTimeInput}, `;
@@ -444,7 +450,7 @@ app.post('/submit-input-form', async (req,res) => {
             insertQuery += `'${delTimeInput}', `;
         }
         
-        insertQuery += `'${productInput}', '${quantityInput}', '${originInput}', '${custInput}', '${billToInput}', '${carInput}', '${destCityInput}', '${destStateInput}');
+        insertQuery += `'${productInput}', '${prodArray}', '${quantityInput}', '${originInput}', '${custInput}', '${billToInput}', '${carInput}', '${destCityInput}', '${destStateInput}');
             `;
         
         await databaseQuery(insertQuery, localConfig);
@@ -461,7 +467,7 @@ app.post('/read-report', async (req,res) => {
         const number = req.body.number;
         const date = formatDateTime(req.body.date);
         const delDate = formatDateTime(req.body.delDate);
-        const query = `SELECT ID, lift_num, CONVERT(varchar, load_date, 120) AS convertedLoadDate, CONVERT(varchar(5), load_time, 108) AS loadTimeFormatted, CONVERT(varchar, del_date, 120) AS convertedDelDate, CONVERT(varchar(5), del_time, 108) AS delTimeFormatted, product, quantity, origin, cust_name, carrier, bill_to, destination_city, destination_state, timestamp
+        const query = `SELECT ID, lift_num, CONVERT(varchar, load_date, 120) AS convertedLoadDate, CONVERT(varchar(5), load_time, 108) AS loadTimeFormatted, CONVERT(varchar, del_date, 120) AS convertedDelDate, CONVERT(varchar(5), del_time, 108) AS delTimeFormatted, product, quantity, origin, cust_name, carrier, bill_to, destination_city, destination_state, CONVERT(varchar(16), timestamp, 120) AS timestamp
         FROM Main
         WHERE ID = '${number}' OR CONVERT(date, '${date}') = CONVERT(date, load_date) OR CONVERT(date, '${delDate}') = CONVERT(date, del_date)`;
         const result = await databaseQuery(query, localConfig);
@@ -470,8 +476,6 @@ app.post('/read-report', async (req,res) => {
             result: result
         };
         
-        console.log(responseData);
-
         res.json(responseData);
     } catch (error) {
         console.error('Error executing the database query: ', error);
@@ -507,6 +511,7 @@ app.post('/update-record', async (req,res) => {
         var delDateQuery = '';
         var loadTimeQuery = '';
         var delTimeQuery = '';
+        var quantityQuery = '';
         var queryEnd = '';
         const receivedArray = req.body;
         
@@ -515,6 +520,7 @@ app.post('/update-record', async (req,res) => {
             loadTimeQuery += `WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].loadTime}'`;
             delDateQuery += `WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].delDate}'`;
             delTimeQuery += `WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].delTime}'`;
+            quantityQuery += `WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].quantity}'`;
 
             if(i+1 == receivedArray.length){
                 queryEnd += `'${receivedArray[i].id}'`;
@@ -536,11 +542,15 @@ app.post('/update-record', async (req,res) => {
             END,
         del_time = 
             CASE ID
-                ${loadTimeQuery}
+                ${delTimeQuery}
             END,
         del_date =
             CASE ID
                 ${delDateQuery}
+            END,
+        quantity =
+            CASE ID
+                ${quantityQuery}
             END
         WHERE ID IN (${queryEnd});
         `;
@@ -629,7 +639,7 @@ app.post('/adminEditUser', async (req, res) => {
     const { username, newUsername, newPermission, newPassword } = req.body;
     let query;
 
-    if(!(await checkExistingUser(newUsername))){
+    if(!(await checkExistingUser(newUsername))|| username == newUsername){
         if(newPassword === ''){
             query = `
                 UPDATE UserAuthentication
