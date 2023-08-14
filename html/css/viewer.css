@@ -23,13 +23,12 @@ body{
 }
 
 #navigation a {
-    font-size: 18px;
     font-weight:700;
     padding-left: 15px;
     padding-right: 15px;
     color: white;
     text-decoration: none;
-
+    font-size: 1.25vw;
 }
 
 #navigation a:hover {
@@ -70,7 +69,124 @@ body{
     font-size: 0.8vw;
 }
 
-@media (min-height: 768px) and (max-width: 1200px){
+@media (max-width: 1425px){
+    #navigation a {
+        font-weight:700;
+        padding-left: 5px;
+        padding-right: 5px;
+        color: white;
+        text-decoration: none;
+        font-size: 1.8vw;
+    }
+
+    #headingContainer{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 15px;
+    }
+    
+    #headingContainer h1{
+        font-size: 3vw;
+    }
+    
+    .marginAround{
+        margin: 15px;
+    }
+    
+    #locationLinks{
+        display: flex;
+        flex-direction: row;
+        flex: 1;
+        align-items: center;
+        justify-content: space-evenly;
+        padding: 0 5vw 0 1vw;
+        font-size: 1vw;
+    }
+}
+
+@media (max-width: 1200px){
+    #navigation a {
+        font-weight:700;
+        padding-left: 5px;
+        padding-right: 5px;
+        color: white;
+        text-decoration: none;
+        font-size: 2.25vw;
+    }
+
+    #headingContainer{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 15px;
+    }
+    
+    #headingContainer h1{
+        font-size: 3vw;
+    }
+    
+    .marginAround{
+        margin: 15px;
+    }
+    
+    #locationLinks{
+        display: flex;
+        flex-direction: row;
+        flex: 1;
+        align-items: center;
+        justify-content: space-evenly;
+        padding: 0 5vw 0 1vw;
+        font-size: 1vw;
+    }
+}
+
+@media (max-width: 760px){
+    #navigation a {
+        font-weight:700;
+        padding-left: 5px;
+        padding-right: 5px;
+        color: white;
+        text-decoration: none;
+        font-size: 2.6vw;
+    }
+
+    #headingContainer{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 15px;
+    }
+    
+    #headingContainer h1{
+        font-size: 3vw;
+    }
+    
+    .marginAround{
+        margin: 15px;
+    }
+    
+    #locationLinks{
+        display: flex;
+        flex-direction: row;
+        flex: 1;
+        align-items: center;
+        justify-content: space-evenly;
+        padding: 0 5vw 0 1vw;
+        font-size: 1vw;
+    }
+}
+
+@media (max-width: 400px){
+    #navigation a {
+        font-weight:700;
+        padding-left: 5px;
+        padding-right: 5px;
+        color: white;
+        text-decoration: none;
+        font-size: 3vw;
+    }
+
     #headingContainer{
         display: flex;
         flex-direction: row;
