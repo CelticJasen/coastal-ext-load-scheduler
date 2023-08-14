@@ -70,13 +70,11 @@ function createTable() {
         const tableRows = document.querySelector('tbody').querySelectorAll('tr');
         let editArray = [];
         tableRows.forEach(function(row){
-            const id = row.querySelector('#id').innerText;
-            const loadDate = row.querySelector('#loadDateEdit').value;
-            const delDate = row.querySelector('#delDateEdit').value;
-            const loadTime = row.querySelector('#loadTimeEdit').value;
-            const delTime = row.querySelector('#delTimeEdit').value;
-            const quantity = row.querySelector('#quantityEdit').value;
-
+            const id = row.querySelector('.id').innerText;
+            const loadDate = row.querySelector('.loadDateEdit').value;
+            const delDate = row.querySelector('.delDateEdit').value;
+            const loadTime = row.querySelector('.loadTimeEdit').value;
+            const delTime = row.querySelector('.delTimeEdit').value;
     
             const payload = {
                 id,
@@ -84,7 +82,6 @@ function createTable() {
                 loadTime,
                 delDate,
                 delTime,
-                quantity
             };
             editArray.push(payload);
         });
@@ -122,21 +119,21 @@ function populateTable(responseData) {
     responseData.forEach(function (data) {
         var row = document.createElement("tr");
         var loadDateEdit = document.createElement('input');
-        loadDateEdit.setAttribute('id', 'loadDateEdit');
+        loadDateEdit.setAttribute('class', 'loadDateEdit');
         loadDateEdit.setAttribute('type', 'date');
         var loadTimeEdit = document.createElement('input');
-        loadTimeEdit.setAttribute('id', 'loadTimeEdit');
+        loadTimeEdit.setAttribute('class', 'loadTimeEdit');
         loadTimeEdit.setAttribute('type', 'time');
         loadTimeEdit.setAttribute('onblur', 'roundTimeToHalfHour(this)')
-        var quantityEdit = document.createElement('input');
-        quantityEdit.setAttribute('id', 'quantityEdit');
-        quantityEdit.setAttribute('type', 'text');
+        /* var quantityEdit = document.createElement('input');
+        quantityEdit.setAttribute('class', 'quantityEdit');
+        quantityEdit.setAttribute('type', 'text'); */
 
         var delDateEdit = document.createElement('input');
-        delDateEdit.setAttribute('id', 'delDateEdit');
+        delDateEdit.setAttribute('class', 'delDateEdit');
         delDateEdit.setAttribute('type', 'date');
         var delTimeEdit = document.createElement('input');
-        delTimeEdit.setAttribute('id', 'delTimeEdit');
+        delTimeEdit.setAttribute('class', 'delTimeEdit');
         delTimeEdit.setAttribute('type', 'time');
         delTimeEdit.setAttribute('onblur', 'roundTimeToHalfHour(this)')
 
@@ -171,12 +168,14 @@ function populateTable(responseData) {
                     cell.appendChild(loadTimeEdit);
                 }
                 else if (key === 'ID'){
-                    cell.id = 'id';
+                    cell.className = 'id';
                     cell.textContent = data[key];
                 }
                 else if(key === 'quantity'){
-                    quantityEdit.setAttribute('value', data[key]);
-                    cell.appendChild(quantityEdit);
+                    cell.textContent = data[key].replace(/null/g, '');
+                }
+                else if(key === 'product_array'){
+                    continue;
                 }
                 else {
                     cell.textContent = data[key];

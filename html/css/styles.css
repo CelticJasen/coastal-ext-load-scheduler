@@ -317,14 +317,29 @@ input[type="submit"] {
 
 #tableDiv {
     display: flex;
-
     width: 100%;
     justify-content: center;
     margin-bottom: 2%;
 }
 #tableDiv input{
-    font-size: 0.725vw;
-    width: 6vw;
+    font-size: 0.7vw;
+    width: 5.3vw;
+}
+
+.quantityEditType{
+    font-size: 0.6vw;
+}
+
+.quantityEdit{
+    width: 2.5vw !important;
+}
+
+.billToEdit{
+    font-size: 0.6vw !important;
+}
+
+.productEdit{
+    font-size: 0.6vw !important;
 }
 
 #dynamicTable {

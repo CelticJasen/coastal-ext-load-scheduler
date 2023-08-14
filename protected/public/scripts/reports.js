@@ -76,7 +76,6 @@ async function populateTable() {
             var row = document.createElement("tr");
             // Loop through each property in the data object and create table cells
             for (var key in data) {
-                console.log(key);
                 if (data.hasOwnProperty(key) && key != 'timestamp') {
                     var cell = document.createElement("td");
     

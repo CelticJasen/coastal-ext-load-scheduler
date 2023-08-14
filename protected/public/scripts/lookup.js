@@ -1,3 +1,12 @@
+function extractNumberAndText(input) {
+    const numberRegex = /\d+/;
+    const numberMatch = input.match(numberRegex);
+    const text = input.replace(numberRegex, '').trim();
+    const number = numberMatch ? parseInt(numberMatch[0]) : '';
+
+    return { number, text };
+}
+
 function roundTimeToHalfHour(input) {
     const timeString = input.value;
     let [hours, minutes] = timeString.split(':').map(Number);
@@ -19,14 +28,14 @@ function roundTimeToHalfHour(input) {
 
 // Function to dynamically create the table
 function createTable() {
-    var tableContainer = document.getElementById('resultContainer');
-    var table = document.createElement('table');
+    let tableContainer = document.getElementById('resultContainer');
+    let table = document.createElement('table');
     table.id = 'dynamicTable';
-    var thead = document.createElement('thead');
-    var tbody = document.createElement('tbody');
+    let thead = document.createElement('thead');
+    let tbody = document.createElement('tbody');
 
-    var headerRow = document.createElement('tr');
-    var headers = [
+    let headerRow = document.createElement('tr');
+    let headers = [
         'ID', 'Lift #', 'Load Date', 'Load Time', 'Delivery Date', 'Delivery Time', 'Product', 'Qty', 'Origin', 'Customer Name', 'Carrier', 'Bill To', 'Dest. City', 'Dest. State', 'Timestamp', 'DELETE'
     ];
 
@@ -36,14 +45,14 @@ function createTable() {
     const buttonDiv = document.createElement('div');
     buttonDiv.id = 'buttonDiv';
 
-    var saveChangesButton = document.createElement('INPUT');
+    let saveChangesButton = document.createElement('INPUT');
     saveChangesButton.id = 'saveChangesButton';
     saveChangesButton.setAttribute('type', 'submit');
     saveChangesButton.setAttribute('value', 'Save Changes');
 
     // Create table headers
     headers.forEach(function (header) {
-        var th = document.createElement("th");
+        let th = document.createElement("th");
 
         th.textContent = header;
         
@@ -70,13 +79,14 @@ function createTable() {
         const tableRows = document.querySelector('tbody').querySelectorAll('tr');
         let editArray = [];
         tableRows.forEach(function(row){
-            const id = row.querySelector('#id').innerText;
-            const loadDate = row.querySelector('#loadDateEdit').value;
-            const delDate = row.querySelector('#delDateEdit').value;
-            const loadTime = row.querySelector('#loadTimeEdit').value;
-            const delTime = row.querySelector('#delTimeEdit').value;
-            const quantity = row.querySelector('#quantityEdit').value;
-
+            const id = row.querySelector('.id').innerText;
+            const loadDate = row.querySelector('.loadDateEdit').value;
+            const delDate = row.querySelector('.delDateEdit').value;
+            const loadTime = row.querySelector('.loadTimeEdit').value;
+            const delTime = row.querySelector('.delTimeEdit').value;
+            const product = row.querySelector('.productEdit').value;
+            const quantity = `${row.querySelector('.quantityEdit').value} ${row.querySelector('.quantityEditType').value}`;
+            const billTo = row.querySelector('.billToEdit').value;
     
             const payload = {
                 id,
@@ -84,8 +94,11 @@ function createTable() {
                 loadTime,
                 delDate,
                 delTime,
-                quantity
+                product,
+                quantity,
+                billTo,
             };
+            
             editArray.push(payload);
         });
 
@@ -116,39 +129,81 @@ function createTable() {
 
 // Function to dynamically populate the table with the responseData
 function populateTable(responseData) {
-    var tableBody = document.querySelector("#dynamicTable tbody");
+    let tableBody = document.querySelector("#dynamicTable tbody");
     tableBody.innerHTML = ""; // Clear any existing rows
 
     responseData.forEach(function (data) {
-        var row = document.createElement("tr");
-        var loadDateEdit = document.createElement('input');
-        loadDateEdit.setAttribute('id', 'loadDateEdit');
+        let row = document.createElement("tr");
+        let loadDateEdit = document.createElement('input');
+        loadDateEdit.setAttribute('class', 'loadDateEdit');
         loadDateEdit.setAttribute('type', 'date');
-        var loadTimeEdit = document.createElement('input');
-        loadTimeEdit.setAttribute('id', 'loadTimeEdit');
+
+        let loadTimeEdit = document.createElement('input');
+        loadTimeEdit.setAttribute('class', 'loadTimeEdit');
         loadTimeEdit.setAttribute('type', 'time');
-        loadTimeEdit.setAttribute('onblur', 'roundTimeToHalfHour(this)')
-        var quantityEdit = document.createElement('input');
-        quantityEdit.setAttribute('id', 'quantityEdit');
+        loadTimeEdit.setAttribute('onblur', 'roundTimeToHalfHour(this)');
+
+        let productEdit = document.createElement('select');
+        productEdit.setAttribute('class', 'productEdit');
+        console.log(data.product_array);
+        let productArray = data.product_array.split(',');
+
+        for(let i = 0; i < productArray.length; i++){
+            let productOption = document.createElement('option');
+            productOption.innerHTML = productArray[i];
+            productOption.value = productArray[i];
+            productEdit.appendChild(productOption);
+        }
+
+        let quantityEdit = document.createElement('input');
+        quantityEdit.setAttribute('class', 'quantityEdit');
         quantityEdit.setAttribute('type', 'text');
+
+        let quantityEditType = document.createElement('select');
+        quantityEditType.setAttribute('class', 'quantityEditType');
+        const fullLoadOption = document.createElement('option');
+        fullLoadOption.innerHTML = 'FULL';
+        fullLoadOption.value = 'FULL';
+        const gallonsOption = document.createElement('option');
+        gallonsOption.innerHTML = 'GAL';
+        gallonsOption.value = 'GAL';
+        const tonsOption = document.createElement('option');
+        tonsOption.innerHTML = 'TON';
+        tonsOption.value = 'TON';
+
+        quantityEditType.appendChild(fullLoadOption);
+        quantityEditType.appendChild(gallonsOption);
+        quantityEditType.appendChild(tonsOption);
+
+        let billTo = document.createElement('select');
+        billTo.setAttribute('class', 'billToEdit');
+        const billToCECOption = document.createElement('option');
+        billToCECOption.innerHTML = 'CEC Hired';
+        billToCECOption.value = 'CEC Hired';
+        const billToCPUOption = document.createElement('option');
+        billToCPUOption.innerHTML = 'Cust PU';
+        billToCPUOption.value = 'Cust PU';
+
+        billTo.appendChild(billToCECOption);
+        billTo.appendChild(billToCPUOption);
 
         let deleteTD = document.createElement('td');
         const deleteButton = document.createElement('button');
         deleteButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512"><style>svg{fill:#000000}</style><path d="M135.2 17.7C140.6 6.8 151.7 0 163.8 0H284.2c12.1 0 23.2 6.8 28.6 17.7L320 32h96c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 96 0 81.7 0 64S14.3 32 32 32h96l7.2-14.3zM32 128H416V448c0 35.3-28.7 64-64 64H96c-35.3 0-64-28.7-64-64V128zm96 64c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16z"/></svg>';
 
-        var delDateEdit = document.createElement('input');
-        delDateEdit.setAttribute('id', 'delDateEdit');
+        let delDateEdit = document.createElement('input');
+        delDateEdit.setAttribute('class', 'delDateEdit');
         delDateEdit.setAttribute('type', 'date');
-        var delTimeEdit = document.createElement('input');
-        delTimeEdit.setAttribute('id', 'delTimeEdit');
+        let delTimeEdit = document.createElement('input');
+        delTimeEdit.setAttribute('class', 'delTimeEdit');
         delTimeEdit.setAttribute('type', 'time');
         delTimeEdit.setAttribute('onblur', 'roundTimeToHalfHour(this)')
 
 
         // Loop through each property in the data object and create table cells
-        for (var key in data) {
+        for (let key in data) {
             if (data.hasOwnProperty(key)) {
-                var cell = document.createElement("td");
+                let cell = document.createElement("td");
                 if (key === 'convertedDelDate') {
                     if(data[key] !== null){
                         delDateEdit.setAttribute('value', data[key]);
@@ -175,16 +230,45 @@ function populateTable(responseData) {
                     cell.appendChild(loadTimeEdit);
                 }
                 else if (key === 'ID'){
-                    cell.id = 'id';
+                    cell.className = 'id';
                     cell.textContent = data[key];
                     deleteButton.setAttribute('data-id', data[key]);
                 }
                 else if (key === 'timestamp'){
                     cell.textContent = data[key];
                 }
+                else if(key === 'product'){
+                    cell.appendChild(productEdit);
+                    for (let i = 0; i < productEdit.options.length; i++){
+                        if (productEdit.options[i].value === data[key]){
+                            productEdit.options[i].selected = true;
+                            break;
+                        };
+                    }
+                }
                 else if(key === 'quantity'){
-                    quantityEdit.setAttribute('value', data[key]);
+                    const quantityExtracted = extractNumberAndText(data[key]);
+                    quantityEdit.setAttribute('value', quantityExtracted.number);
                     cell.appendChild(quantityEdit);
+                    cell.appendChild(quantityEditType);
+                    for (let i = 0; i < quantityEditType.options.length; i++){
+                        if (quantityEditType.options[i].value === quantityExtracted.text){
+                            quantityEditType.options[i].selected = true;
+                            break;
+                        };
+                    }
+                }
+                else if(key === 'bill_to'){
+                    cell.appendChild(billTo);
+                    for (let i = 0; i < billTo.options.length; i++){
+                        if (billTo.options[i].value === data[key]){
+                            billTo.options[i].selected = true;
+                            break;
+                        };
+                    }
+                }
+                else if(key === 'product_array'){
+                    continue;
                 }
                 else {
                     cell.textContent = data[key];
@@ -249,9 +333,9 @@ document.getElementById('submit_button').addEventListener('click', async (event)
     const number = document.getElementById('unique_id').value;
     const date = document.getElementById('date_time_query').value;
     const delDate = document.getElementById('del_date_time_query').value;
-    var sched_form = document.createElement('form'); // Start here to create a grid sheet of the returned data
+    let sched_form = document.createElement('form'); // Start here to create a grid sheet of the returned data
     sched_form.setAttribute('id', 'gridReport'); // Here too <<<<
-    var container = document.getElementById('resultContainer');
+    let container = document.getElementById('resultContainer');
   
     // retrieves information from our server
 
@@ -283,7 +367,7 @@ document.getElementById('submit_button').addEventListener('click', async (event)
             });
             const invalidLiftNumber = document.createElement('span');
             invalidLiftNumber.id = 'invalidLift';
-            invalidLiftNumber.innerHTML = 'Invalid Entry!';
+            invalidLiftNumber.innerHTML = 'No Results!';
             container.appendChild(invalidLiftNumber);
         }
         else {

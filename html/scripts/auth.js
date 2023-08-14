@@ -1,6 +1,10 @@
 const timeoutDuration = 240 * 60 * 1000; //5 minutes
 let timeoutLogin;
 
+function openViewer(){
+    window.open('/viewer', '_blank', 'width=1920,height=1080');
+}
+
 function resetTimer(){
     clearTimeout(timeoutLogin);
     timeoutLogin = setTimeout(logout, timeoutDuration);

@@ -467,7 +467,7 @@ app.post('/read-report', async (req,res) => {
         const number = req.body.number;
         const date = formatDateTime(req.body.date);
         const delDate = formatDateTime(req.body.delDate);
-        const query = `SELECT ID, lift_num, CONVERT(varchar, load_date, 120) AS convertedLoadDate, CONVERT(varchar(5), load_time, 108) AS loadTimeFormatted, CONVERT(varchar, del_date, 120) AS convertedDelDate, CONVERT(varchar(5), del_time, 108) AS delTimeFormatted, product, quantity, origin, cust_name, carrier, bill_to, destination_city, destination_state, CONVERT(varchar(16), timestamp, 120) AS timestamp
+        const query = `SELECT ID, lift_num, CONVERT(varchar, load_date, 120) AS convertedLoadDate, CONVERT(varchar(5), load_time, 108) AS loadTimeFormatted, CONVERT(varchar, del_date, 120) AS convertedDelDate, CONVERT(varchar(5), del_time, 108) AS delTimeFormatted, product, quantity, origin, cust_name, carrier, bill_to, destination_city, destination_state, CONVERT(varchar(16), timestamp, 120) AS timestamp, product_array
         FROM Main
         WHERE ID = '${number}' OR CONVERT(date, '${date}') = CONVERT(date, load_date) OR CONVERT(date, '${delDate}') = CONVERT(date, del_date)`;
         const result = await databaseQuery(query, localConfig);
@@ -507,12 +507,17 @@ app.post('/read-reports-page', async (req, res) => {
 app.post('/update-record', async (req,res) => {
     try {
 
-        var loadDateQuery = '';
-        var delDateQuery = '';
-        var loadTimeQuery = '';
-        var delTimeQuery = '';
-        var quantityQuery = '';
-        var queryEnd = '';
+        let loadDateQuery = '';
+        let delDateQuery = '';
+        let loadTimeQuery = '';
+        let delTimeQuery = '';
+        let productQuery = '';
+        let quantityQuery = '';
+        let billToQuery = '';
+        let queryEnd = '';
+        let query = '';
+        let hasQuantity = true;
+
         const receivedArray = req.body;
         
         for (i=0; i< receivedArray.length;i++){
@@ -520,8 +525,21 @@ app.post('/update-record', async (req,res) => {
             loadTimeQuery += `WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].loadTime}'`;
             delDateQuery += `WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].delDate}'`;
             delTimeQuery += `WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].delTime}'`;
-            quantityQuery += `WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].quantity}'`;
 
+            // if the user is administrator or dispatch we need to account for the fact that they can edit quantity, bill_to, and product while other users can't
+            if(receivedArray[i].quantity){
+                quantityQuery += `WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].quantity}'`;
+                hasQuantity = true;
+            }
+            else{
+                hasQuantity = false;
+            }
+
+            // if there's a quantity, then there definitely is a billTo and product since that's how the app is built. If something changes, this may need its own check.
+            billToQuery += `WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].billTo}'`;
+            productQuery += `WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].product}'`;
+
+            // we need a different ending depending on whether or not there are more records to edit
             if(i+1 == receivedArray.length){
                 queryEnd += `'${receivedArray[i].id}'`;
             }
@@ -530,32 +548,66 @@ app.post('/update-record', async (req,res) => {
             }
         }
 
-        const query = `
-        UPDATE Main
-        SET load_date = 
-            CASE ID
-                ${loadDateQuery}
-            END,
-        load_time = 
-            CASE ID
-                ${loadTimeQuery}
-            END,
-        del_time = 
-            CASE ID
-                ${delTimeQuery}
-            END,
-        del_date =
-            CASE ID
-                ${delDateQuery}
-            END,
-        quantity =
-            CASE ID
-                ${quantityQuery}
-            END
-        WHERE ID IN (${queryEnd});
-        `;
+        // This query is for dispatch and admins since they'll need to be able to edit quantity, bill to, and product
+        if(hasQuantity){
+            query = `
+            UPDATE Main
+            SET load_date = 
+                CASE ID
+                    ${loadDateQuery}
+                END,
+            load_time = 
+                CASE ID
+                    ${loadTimeQuery}
+                END,
+            del_time = 
+                CASE ID
+                    ${delTimeQuery}
+                END,
+            del_date =
+                CASE ID
+                    ${delDateQuery}
+                END,
+            quantity =
+                CASE ID
+                    ${quantityQuery}
+                END,
+            bill_to =
+                CASE ID
+                    ${billToQuery}
+                END,
+            product =
+                CASE ID
+                    ${productQuery}
+                END
+            WHERE ID IN (${queryEnd});
+            `;
+        }
+        else{
+            // This query is basically for Plant users since all they should be editing are dates and times.
+            query = `
+            UPDATE Main
+            SET load_date = 
+                CASE ID
+                    ${loadDateQuery}
+                END,
+            load_time = 
+                CASE ID
+                    ${loadTimeQuery}
+                END,
+            del_time = 
+                CASE ID
+                    ${delTimeQuery}
+                END,
+            del_date =
+                CASE ID
+                    ${delDateQuery}
+                END
+            WHERE ID IN (${queryEnd});
+            `;
+        }
 
-        const response = databaseQuery(query, localConfig);
+        const response = await databaseQuery(query, localConfig);
 
         res.json(response);
     } catch (error) {

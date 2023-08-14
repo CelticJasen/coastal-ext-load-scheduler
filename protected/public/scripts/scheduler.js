@@ -172,14 +172,14 @@ document.getElementById('submit_button').addEventListener('click', async (event)
                 placeholderLabel.setAttribute('selected', true);
                 placeholderLabel.setAttribute('hidden', true);
             const fullLoadOption = document.createElement('option');
-                fullLoadOption.innerHTML = 'Full Load';
-                fullLoadOption.value = 'Full Load';
+                fullLoadOption.innerHTML = 'FULL';
+                fullLoadOption.value = 'FULL';
             const gallonsOption = document.createElement('option');
-                gallonsOption.innerHTML = 'gal';
-                gallonsOption.value = 'gal';
+                gallonsOption.innerHTML = 'GAL';
+                gallonsOption.value = 'GAL';
             const tonsOption = document.createElement('option');
-                tonsOption.innerHTML = 'tons';
-                tonsOption.value = 'tons';
+                tonsOption.innerHTML = 'TON';
+                tonsOption.value = 'TON';
 
             quantityLabel.appendChild(placeholderLabel)
             quantityLabel.appendChild(fullLoadOption);
