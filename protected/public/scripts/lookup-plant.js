@@ -73,9 +73,15 @@ function createTable() {
             const id = row.querySelector('.id').innerText;
             const loadDate = row.querySelector('.loadDateEdit').value;
             const delDate = row.querySelector('.delDateEdit').value;
-            const loadTime = row.querySelector('.loadTimeEdit').value;
-            const delTime = row.querySelector('.delTimeEdit').value;
-    
+            let loadTime = row.querySelector('.loadTimeEdit').value;
+            let delTime = row.querySelector('.delTimeEdit').value;
+            if(loadTime === ''){
+                loadTime = null;
+            }
+            if(delTime === ''){
+                delTime === null;
+            }
+
             const payload = {
                 id,
                 loadDate,

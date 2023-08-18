@@ -12,7 +12,7 @@ function parseLoadTime(loadTime){
 
     const cleanedTime = loadTime.replace(/ {2}/g, ' ');
 
-    if(cleanedTime.length === 15 || cleanedTime.length === 8){
+    if(cleanedTime.length === 15 || cleanedTime.length === 8 || cleanedTime.length === 16){
         const parts = cleanedTime.split(' ');
         const datePart = parts[0];
         const dateParts = datePart.split('/');

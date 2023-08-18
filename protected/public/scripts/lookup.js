@@ -82,8 +82,14 @@ function createTable() {
             const id = row.querySelector('.id').innerText;
             const loadDate = row.querySelector('.loadDateEdit').value;
             const delDate = row.querySelector('.delDateEdit').value;
-            const loadTime = row.querySelector('.loadTimeEdit').value;
-            const delTime = row.querySelector('.delTimeEdit').value;
+            let loadTime = row.querySelector('.loadTimeEdit').value;
+            let delTime = row.querySelector('.delTimeEdit').value;
+            if(loadTime === ''){
+                loadTime = null;
+            }
+            if(delTime === ''){
+                delTime === null;
+            }
             const product = row.querySelector('.productEdit').value;
             const quantity = `${row.querySelector('.quantityEdit').value} ${row.querySelector('.quantityEditType').value}`;
             const billTo = row.querySelector('.billToEdit').value;
@@ -145,7 +151,6 @@ function populateTable(responseData) {
 
         let productEdit = document.createElement('select');
         productEdit.setAttribute('class', 'productEdit');
-        console.log(data.product_array);
         let productArray = data.product_array.split(',');
 
         for(let i = 0; i < productArray.length; i++){
@@ -178,11 +183,11 @@ function populateTable(responseData) {
         let billTo = document.createElement('select');
         billTo.setAttribute('class', 'billToEdit');
         const billToCECOption = document.createElement('option');
-        billToCECOption.innerHTML = 'CEC Hired';
-        billToCECOption.value = 'CEC Hired';
+        billToCECOption.innerHTML = 'CECHIRE';
+        billToCECOption.value = 'CECHIRE';
         const billToCPUOption = document.createElement('option');
-        billToCPUOption.innerHTML = 'Cust PU';
-        billToCPUOption.value = 'Cust PU';
+        billToCPUOption.innerHTML = 'CUSTPU';
+        billToCPUOption.value = 'CUSTPU';
 
         billTo.appendChild(billToCECOption);
         billTo.appendChild(billToCPUOption);

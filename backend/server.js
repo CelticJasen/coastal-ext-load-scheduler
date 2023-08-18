@@ -522,9 +522,9 @@ app.post('/read-viewer', async (req, res) => {
 
     try {
         const query = `
-            SELECT ID, lift_num, NULL AS status, product, quantity, NULL AS originCompany, origin, cust_name, destination_city + ', ' + destination_state AS destinationCity, CONVERT(varchar, load_date, 1) + CASE WHEN load_time IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), load_time, 100), '') END AS loadTime, CONVERT(varchar, del_date, 1) + ' ' + ISNULL(CONVERT(varchar(7), del_time, 100), '') AS delTime, carrier, bill_to, NULL AS driver, NULL AS truck, NULL AS trailer, NULL AS poNum, NULL AS destPONum, NULL AS pump, NULL AS remarks
+            SELECT ID, lift_num, NULL AS status, product, quantity, NULL AS originCompany, origin, cust_name, destination_city + ', ' + destination_state AS destinationCity, CONVERT(varchar, load_date, 1) + CASE WHEN load_time IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), load_time, 100), '') END AS loadTime, CONVERT(varchar, del_date, 1) + CASE WHEN del_date IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), del_time, 100), '') END AS delTime, carrier, bill_to, NULL AS driver, NULL AS truck, NULL AS trailer, NULL AS poNum, NULL AS destPONum, NULL AS pump, NULL AS remarks
             FROM Main
-            WHERE load_date = '${startDate}'
+            WHERE load_date = '${startDate}' AND CONVERT(varchar, del_date, 1) + CASE WHEN del_date IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), del_time, 100), '') END > { fn NOW() } - 4
             ORDER BY load_time ASC;`;
         const result = await databaseQuery(query, localConfig);
 
