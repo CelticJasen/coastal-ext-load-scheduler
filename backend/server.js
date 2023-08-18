@@ -522,10 +522,10 @@ app.post('/read-viewer', async (req, res) => {
 
     try {
         const query = `
-            SELECT ID, lift_num, NULL AS status, product, quantity, NULL AS originCompany, origin, cust_name, destination_city + ', ' + destination_state AS destinationCity, CONVERT(varchar, load_date, 1) + CASE WHEN load_time IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), load_time, 100), '') END AS loadTime, CONVERT(varchar, del_date, 1) + CASE WHEN del_date IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), del_time, 100), '') END AS delTime, carrier, bill_to, NULL AS driver, NULL AS truck, NULL AS trailer, NULL AS poNum, NULL AS destPONum, NULL AS pump, NULL AS remarks
+            SELECT [ID], [lift_num], NULL AS [status], [product], [quantity], NULL AS [originCompany], [origin], [cust_name], [destination_city] + ', ' + [destination_state] AS [destinationCity], CONVERT(varchar, [load_date], 1) + CASE WHEN [load_time] IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), [load_time], 100), '') END AS [loadTime], CONVERT(varchar, [del_date], 1) + CASE WHEN [del_date] IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), [del_time], 100), '') END AS [delTime], [carrier], [bill_to], NULL AS [driver], NULL AS [truck], NULL AS [trailer], NULL AS [poNum], NULL AS [destPONum], NULL AS [pump], NULL AS [remarks]
             FROM Main
-            WHERE load_date = '${startDate}' AND CONVERT(varchar, del_date, 1) + CASE WHEN del_date IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), del_time, 100), '') END > { fn NOW() } - 4
-            ORDER BY load_time ASC;`;
+            WHERE [load_date] = '${startDate}' AND CONVERT(varchar, [del_date], 1) + CASE WHEN [del_date] IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), [del_time], 100), '') END > { fn NOW() } - 4
+            ORDER BY [load_time] ASC;`;
         const result = await databaseQuery(query, localConfig);
 
         const responseData = {
@@ -575,14 +575,24 @@ app.post('/update-record', async (req,res) => {
         const receivedArray = req.body;
         
         for (i=0; i< receivedArray.length;i++){
-            loadDateQuery += `WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].loadDate}'`;
-            loadTimeQuery += `WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].loadTime}'`;
-            delDateQuery += `WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].delDate}'`;
-            delTimeQuery += `WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].delTime}'`;
+            loadDateQuery += ` WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].loadDate}'`;
+            if(receivedArray[i].loadTime){
+                loadTimeQuery += ` WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].loadTime}'`;
+            }
+            else{
+                loadTimeQuery += ` WHEN '${receivedArray[i].id}' THEN NULL`;
+            }
+            delDateQuery += ` WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].delDate}'`;
+            if(receivedArray[i].delTime){
+                delTimeQuery += ` WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].delTime}'`;
+            }
+            else{
+                delTimeQuery += ` WHEN '${receivedArray[i].id}' THEN NULL`;
+            }
 
             // if the user is administrator or dispatch we need to account for the fact that they can edit quantity, bill_to, and product while other users can't
             if(receivedArray[i].quantity){
-                quantityQuery += `WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].quantity}'`;
+                quantityQuery += ` WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].quantity}'`;
                 hasQuantity = true;
             }
             else{
@@ -590,8 +600,8 @@ app.post('/update-record', async (req,res) => {
             }
 
             // if there's a quantity, then there definitely is a billTo and product since that's how the app is built. If something changes, this may need its own check.
-            billToQuery += `WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].billTo}'`;
-            productQuery += `WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].product}'`;
+            billToQuery += ` WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].billTo}'`;
+            productQuery += ` WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].product}'`;
 
             // we need a different ending depending on whether or not there are more records to edit
             if(i+1 == receivedArray.length){

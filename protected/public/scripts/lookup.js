@@ -104,6 +104,8 @@ function createTable() {
                 quantity,
                 billTo,
             };
+
+            console.log(payload);
             
             editArray.push(payload);
         });
