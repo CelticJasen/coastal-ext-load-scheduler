@@ -34,6 +34,21 @@ const localConfig = {
     },
 };
 
+const localViewerConfig = {
+    server: 'SQL-2019.cfmc.local',
+    authentication: {
+        type: 'default',
+        options: {
+            userName: 'nodejs',
+            password: 'Co@stal362',
+        },
+    },
+    options: {
+        database: 'TMW_Live',
+        encrypt: false,
+    },
+};
+
 //Our External Database config for reading data
 const extConfig = {
     server: 'DEARMAN-TUL',
@@ -399,7 +414,7 @@ app.get('/administrationScript', (req, res) => {
 app.post('/submit-read-form', async (req,res) => {
     try {
         const { number } = req.body;
-        const query = `SELECT c.ConRef, p.ProdName, t.TpName, d.DestCity, d.DestState, cr.CarName1, cu.Custname
+        const query = `SELECT c.ConRef, p.ProdName, t.TpName, d.DestCity, d.DestState, UPPER(CONVERT(varchar(3), cr.CarName1) + ISNULL(CONVERT(varchar(3), cr.CarCity), '')) AS CarName1, cu.Custname
         FROM DSI_REG_Contract c 
             LEFT JOIN APM_ProdAllocation pa ON c.ConTermKey = pa.PAlcTerminal
             LEFT JOIN APM_Products p ON pa.PAlcProdKey = p.ProdEntityKey
@@ -488,10 +503,51 @@ app.post('/read-reports-page', async (req, res) => {
 
     try {
         const query = `
-            SELECT ID, lift_num, CONVERT(varchar, load_date, 120) AS convertedLoadDate, CONVERT(varchar(5), load_time, 108) AS loadTimeFormatted, CONVERT(varchar, del_date, 120) AS convertedDelDate, CONVERT(varchar(5), del_time, 108) AS delTimeFormatted, product, quantity, origin, cust_name, carrier, bill_to, destination_city, destination_state, timestamp
+            SELECT ID, lift_num, CONVERT(varchar, load_date, 120) AS convertedLoadDate, CONVERT(varchar(5), load_time, 108) AS loadTimeFormatted, CONVERT(varchar, del_date, 120) AS convertedDelDate, CONVERT(varchar(5), del_time, 108) AS delTimeFormatted, product, quantity, origin, cust_name, carrier, bill_to, destination_city, destination_state, CONVERT(varchar(16), timestamp, 120) AS timestamp
             FROM Main
             WHERE load_date BETWEEN '${startDate}' AND '${endDate}'`;
         const result = await databaseQuery(query, localConfig);
+
+        const responseData = {
+            result: result
+        };
+
+        res.json(responseData);
+    } catch (error) {
+        console.error('Error executing the database query: ', error);
+        res.status(500).json({ error: 'Internal server error'});
+    }
+});
+
+app.post('/read-viewer', async (req, res) => {
+    const { startDate } = req.body;
+
+    try {
+        const query = `
+            SELECT ID, lift_num, NULL AS status, product, quantity, NULL AS originCompany, origin, cust_name, destination_city + ', ' + destination_state AS destinationCity, CONVERT(varchar, load_date, 1) + CASE WHEN load_time IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), load_time, 100), '') END AS loadTime, CONVERT(varchar, del_date, 1) + ' ' + ISNULL(CONVERT(varchar(7), del_time, 100), '') AS delTime, carrier, bill_to, NULL AS driver, NULL AS truck, NULL AS trailer, NULL AS poNum, NULL AS destPONum, NULL AS pump, NULL AS remarks
+            FROM Main
+            WHERE load_date = '${startDate}'
+            ORDER BY load_time ASC;`;
+        const result = await databaseQuery(query, localConfig);
+
+        const responseData = {
+            result: result
+        };
+
+        res.json(responseData);
+    } catch (error) {
+        console.error('Error executing the database query: ', error);
+        res.status(500).json({ error: 'Internal server error'});
+    }
+});
+
+app.post('/read-ext-viewer', async (req, res) => {
+    const { startDate } = req.body;
+
+    try {
+        const query = `
+        SELECT [ord_hdrnumber] AS [ID], NULL AS [lift_num], [DispStatus] AS [status], [cmd_name] AS [product], IIF([fgt_ordered_count]<>0, CONVERT(VARCHAR(10),[fgt_ordered_count]) + ' ' + CONVERT(VARCHAR(5),[fgt_countunit]), IIF([fgt_ordered_weight]<>0, CONVERT(VARCHAR(10),[fgt_ordered_weight]) + ' ' + CONVERT(VARCHAR(5),[fgt_weightunit]),IIF([fgt_ordered_volume]<>0,CONVERT(VARCHAR(10),[fgt_ordered_volume]) + ' ' + CONVERT(VARCHAR(5),[Unit]),'1 LOAD'))) AS [quantity], [PickupName] AS [originCompany], REPLACE([PickupCity], '/', '') AS [origin], [cmp_name] AS [cust_name], REPLACE([cty_nmstct], '/', '') AS [destinationCity], IIF(CONVERT(VARCHAR(10),[Load1],1)='01/01/50','OPEN',IIF([Load1]=[Load2],convert(varchar(10),[Load1], 1) + right(convert(varchar(32),[Load1],100),8),convert(varchar(10),[Load1], 1) + right(convert(varchar(32),[Load1],100),8) + ' - ' + convert(varchar(10),[Load2], 1) + right(convert(varchar(32),[Load2],100),8))) AS [loadTime], IIF(CONVERT(VARCHAR(10),[stp_schdtearliest],1)='01/01/50','OPEN',IIF([stp_schdtearliest]=[stp_schdtlatest],convert(varchar(10),[stp_schdtearliest], 1) + right(convert(varchar(32),[stp_schdtearliest],100),8),convert(varchar(10),[stp_schdtearliest], 1) + right(convert(varchar(32),[stp_schdtearliest],100),8) + ' - ' + convert(varchar(10),[stp_schdtlatest], 1) + right(convert(varchar(32),[stp_schdtlatest],100),8))) AS [delTime], IIF([Carrier] = 'UNKNOWN',IIF([Driver1Name] <>'UNKNOWN','FMCT','UNK'),[Carrier]) AS [carrier], [billTo] AS [bill_to], IIF([Driver1Name] = 'UNKNOWN','UNK',[Driver1Name]) AS [driver], IIF([Tractor] = 'UNKNOWN','UNK',[Tractor]) AS [truck], IIF([Trailer1] = 'UNKNOWN','UNK',[Trailer1]) AS [trailer], [PONum] AS [poNum], [DestPO] AS [destPONum], [RevType4] AS [pump], [ord_remark] AS [remarks] FROM [RouteSheetView] WHERE '${startDate}' BETWEEN CONVERT(DATE, Load1) AND CONVERT(DATE, Load2) AND ([RevType2] = 'ASPH') AND CONVERT(varchar(10), [stp_schdtlatest], 1) > { fn NOW() } - 4 ORDER BY loadTime ASC;`;
+        const result = await databaseQuery(query, localViewerConfig);
 
         const responseData = {
             result: result

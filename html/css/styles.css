@@ -348,7 +348,6 @@ input[type="submit"] {
     background-color: white;
     table-layout: auto;
     margin-bottom: 3%;
-    
 }
 
 #dynamicTable th,
@@ -359,9 +358,6 @@ input[type="submit"] {
     white-space: nowrap;
 }
 
-
-
-/* Style the table header cells */
 #dynamicTable th {
     background-color: #f2f2f2;
     text-align: left;
@@ -371,7 +367,6 @@ input[type="submit"] {
     background-color: #bebebe;
 }
 
-/* Set the text color to black for all cells */
 #dynamicTable th,
 #dynamicTable td {
     color: black;

@@ -125,7 +125,7 @@ document.getElementById('submit_button').addEventListener('click', async (event)
             const destCities = data.map((row) => row.DestCity);
             const destStates = data.map((row) => row.DestState);
             const carNames = data.map((row) => row.CarName1);
-            const billNames = ['CEC Hired', 'Cust PU']
+            const billNames = ['CECHIRE', 'CUSTPU']
             const custNames = data.map((row) => row.Custname);
 
             // creates input elements for the generated form

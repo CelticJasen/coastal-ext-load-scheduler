@@ -10,10 +10,6 @@ function printTable(){
     });
 }
 
-function formatDateTime(dateString) {
-    return dateString.replace(/T|:\d+\.\d+Z/g, ' ').slice(0, 16);
-}
-
 function formatMilitaryTime(timeIn){
     const [hoursStr, minutesStr] = timeIn.split(':');
     const hours = parseInt(hoursStr, 10);
@@ -80,7 +76,7 @@ async function populateTable() {
                     var cell = document.createElement("td");
     
                     if (key === 'timestamp'){
-                        cell.textContent = formatDateTime(data[key]);
+                        cell.textContent = data[key];
                     }
                     else if (key === 'loadTimeFormatted'){
                         if(data[key] !=null){
@@ -98,7 +94,6 @@ async function populateTable() {
                             cell.textContent = '';
                         }
                     }
-                    
                     else {
                         cell.textContent = data[key];
                     }
