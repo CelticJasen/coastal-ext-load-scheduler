@@ -118,6 +118,10 @@ h3{
     border-bottom: 2px solid black;
 }
 
+.currentDate {
+    display: inline;
+}
+
 @media (max-width: 1425px){
     #navigation a {
         font-weight:700;

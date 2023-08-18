@@ -69,11 +69,12 @@ const extConfig = {
 
 async function databaseQuery(query, databaseConfig) {
     try {
-        while (isSqlConnected()){
-            await new Promise((resolve) => setTimeout(resolve, 100));
-        }
 
         pool = await sql.connect(databaseConfig);
+
+        pool.on('error', err => {
+            console.error('Database connection pool error:', err);
+        });
         
         const request = pool.request();
 
@@ -81,17 +82,14 @@ async function databaseQuery(query, databaseConfig) {
 
         const rows = result.recordset;
 
-        sql.close();
-
         return rows;
-    } catch (error) {
-        throw new Error('Error executing the database query: ' + error.message);
     }
-}
-
-// for checking to see if there's an active sql connection that we need to wait for
-function isSqlConnected() {
-    return pool && pool.connected;
+    catch (error) {
+        throw new Error('(server.js) Error executing the database query: ' + error.message);
+    }
+    finally{
+        pool.close();
+    }
 }
 
 function formatDateTime(dateString) {

@@ -302,6 +302,13 @@ window.onload = function(){
     createTable("tomorrow");
 }
 
+const currentDateElements = document.getElementsByClassName("currentDate");
+const currentDate = new Date();
+
+for(const element of currentDateElements){
+    element.textContent = currentDate.toDateString();
+}
+
 /* document.getElementById('searchButton').addEventListener('click', createTable);
 
 newLogoutButton();
