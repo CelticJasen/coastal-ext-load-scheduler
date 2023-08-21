@@ -376,35 +376,3 @@ for(const element of currentDateElements){
 setTimeout(function(){
     location.reload();
 }, 60000);
-
-/* document.getElementById('searchButton').addEventListener('click', createTable);
-
-newLogoutButton();
-
-document.getElementById('printButton').addEventListener('click', printTable);
-document.addEventListener('DOMContentLoaded', populateTable);
-
-document.getElementById('refreshButton').addEventListener('click', function() {
-    fetchProtectedRoute('Reports');
-});
-
-if(document.getElementById('schedulerButton')){
-    document.getElementById('schedulerButton').addEventListener('click', function() {
-        fetchProtectedRoute('Scheduler');
-    });
-}
-if(document.getElementById('lookupButton')){
-    document.getElementById('lookupButton').addEventListener('click', function(){
-        fetchProtectedRoute('Lookup');
-    });
-}
-if(document.getElementById('reportsButton')){
-    document.getElementById('reportsButton').addEventListener('click', function(){
-        fetchProtectedRoute('Reports');
-    });
-}
-if(document.getElementById('adminButton')){
-    document.getElementById('adminButton').addEventListener('click', function(){
-        fetchProtectedRoute('Administration');
-    });
-} */
