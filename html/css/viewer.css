@@ -97,26 +97,25 @@ h3{
 
 .dynamicTable th,
 .dynamicTable td {
-    font-size: .6vw;
+    font-size: .7vw;
     border: 1px solid #ddd;
-    padding: 8px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    padding-left: 4px;
+    padding-right: 4px;
     white-space: normal;
+    color: black;
+    border-bottom: 2px solid black;
 }
 
 .dynamicTable th {
     background-color: #000084;
     color: white !important;
-    text-align: left;
+    text-align: center;
 }
 
 .dynamicTable tr:nth-child(even) {
     background-color: #ebebeb;
-}
-
-.dynamicTable th,
-.dynamicTable td {
-    color: black;
-    border-bottom: 2px solid black;
 }
 
 .currentDate {
