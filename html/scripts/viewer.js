@@ -1,3 +1,11 @@
+const todayOutboundContainer = document.getElementById('tableContainerTodayOutbound');
+const tomorrowOutboundContainer = document.getElementById('tableContainerTomorrowOutbound');
+const todayInboundContainer = document.getElementById('tableContainerTodayInbound');
+const tomorrowInboundContainer = document.getElementById('tableContainerTomorrowInbound');
+
+const currentDateElements = document.getElementsByClassName("currentDate");
+const currentDate = new Date();
+
 function waitForElement(selector, callback){
     const interval = 100;
     const maxAttempts = 50;
@@ -285,6 +293,7 @@ async function dataRetriever(when, how){
         payload = {
             startDate,
             how,
+            when,
         }
     }
     else if(when === "tomorrow"){
@@ -307,6 +316,7 @@ async function dataRetriever(when, how){
         payload = {
             startDate,
             how,
+            when,
         }
     }
 
@@ -352,20 +362,12 @@ async function dataRetriever(when, how){
     }
 }
 
-const todayOutboundContainer = document.getElementById('tableContainerTodayOutbound');
-const tomorrowOutboundContainer = document.getElementById('tableContainerTomorrowOutbound');
-const todayInboundContainer = document.getElementById('tableContainerTodayInbound');
-const tomorrowInboundContainer = document.getElementById('tableContainerTomorrowInbound');
-
 window.onload = async function(){
     await createTable("today", "outbnd");
     await createTable("tomorrow", "outbnd");
     await createTable("today", "inbnd");
     await createTable("tomorrow", "inbnd");
 }
-
-const currentDateElements = document.getElementsByClassName("currentDate");
-const currentDate = new Date();
 
 for(const element of currentDateElements){
     element.textContent = `(${currentDate.toDateString()})`;
