@@ -1,3 +1,27 @@
+function waitForElement(selector, callback){
+    const interval = 100;
+    const maxAttempts = 50;
+
+    let attempts = 0;
+    const checkForElement = () => {
+        const element = document.querySelector(selector);
+        if(element) {
+            callback(element);
+        }
+        else {
+            attempts++;
+            if(attempts < maxAttempts){
+                setTimeout(checkForElement, interval);
+            }
+            else{
+                console.error(`Element ${selector} not found after ${maxAttempts} attempts.`);
+            }
+        }
+    };
+
+    checkForElement();
+}
+
 function customSort(a, b){
     const dateA = parseLoadTime(a.loadTime);
     const dateB = parseLoadTime(b.loadTime);
@@ -76,14 +100,21 @@ function formatMilitaryTime(timeIn){
 }
 
 // Function to dynamically create the table
-function createTable(when) {
+async function createTable(when, how) {
+
     let table = document.createElement('table');
 
-    if(when === "today"){
+    if(when === "today" && how === "outbnd"){
         table.id = 'todayOutboundTable';
     }
-    else if(when === "tomorrow"){
+    else if(when === "tomorrow" && how === "outbnd"){
         table.id = 'tomorrowOutboundTable';
+    }
+    else if(when === "today" && how === "inbnd"){
+        table.id = 'todayInboundTable';
+    }
+    else if(when === "tomorrow" && how === "inbnd"){
+        table.id = 'tomorrowInboundTable';
     }
 
     table.className = 'dynamicTable';
@@ -98,11 +129,17 @@ function createTable(when) {
 
     const tableDiv = document.createElement('div');
 
-    if(when === "today"){
+    if(when === "today" && how === "outbnd"){
         tableDiv.id = 'tableDivTodayOutbound';
     }
-    else if(when === "tomorrow"){
+    else if(when === "tomorrow" && how === "outbnd"){
         tableDiv.id = 'tableDivTomorrowOutbound';
+    }
+    else if(when === "today" && how === "inbnd"){
+        tableDiv.id = 'tableDivTodayInbound';
+    }
+    else if(when === "tomorrow" && how === "inbnd"){
+        tableDiv.id = 'tableDivTomorrowInbound';
     }
 
     tableDiv.className = 'tableDiv';
@@ -120,31 +157,44 @@ function createTable(when) {
     table.appendChild(thead);
     table.appendChild(tbody);
 
-    if(when === "today"){
+    if(when === "today" && how === "outbnd"){
         todayOutboundContainer.appendChild(tableDiv);
     }
-    else if(when === "tomorrow"){
+    else if(when === "tomorrow" && how === "outbnd"){
         tomorrowOutboundContainer.appendChild(tableDiv);
+    }
+    else if(when === "today" && how === "inbnd"){
+        todayInboundContainer.appendChild(tableDiv);
+    }
+    else if(when === "tomorrow" && how === "inbnd"){
+        tomorrowInboundContainer.appendChild(tableDiv);
     }
 
     tableDiv.appendChild(table);
 
-    populateTable(when);
+    await populateTable(when, how);
 }
 
 // Function to dynamically populate the table with the responseData
-async function populateTable(when) {
+async function populateTable(when, how) {
+
     let tableBody;
 
-    if(when === "today"){
+    if(when === "today" && how === "outbnd"){
         tableBody = document.querySelector('#todayOutboundTable tbody');
     }
-    else if(when === "tomorrow"){
+    else if(when === "tomorrow" && how === "outbnd"){
         tableBody = document.querySelector('#tomorrowOutboundTable tbody');
+    }
+    else if(when === "today" && how === "inbnd"){
+        tableBody = document.querySelector('#todayInboundTable tbody');
+    }
+    else if(when === "tomorrow" && how === "inbnd"){
+        tableBody = document.querySelector('#tomorrowInboundTable tbody');
     }
 
     try{
-        const responseData = await dataRetriever(when);
+        const responseData = await dataRetriever(when, how);
         responseData.forEach(function (data) {
 
             let row = document.createElement('tr');
@@ -176,16 +226,24 @@ async function populateTable(when) {
                     row.appendChild(cell);
                 }
             }
-            tableBody.appendChild(row);
+            if(row){
+                tableBody.appendChild(row);
+            }
         });
 
         let table;
 
-        if(when === "today"){
+        if(when === "today" && how === "outbnd"){
             table = document.getElementById("todayOutboundTable");
         }
-        else if(when === "tomorrow"){
+        else if(when === "tomorrow" && how === "outbnd"){
             table = document.getElementById("tomorrowOutboundTable");
+        }
+        else if(when === "today" && how === "inbnd"){
+            table = document.getElementById("todayInboundTable");
+        }
+        else if(when === "tomorrow" && how === "inbnd"){
+            table = document.getElementById("tomorrowInboundTable");
         }
         
         const rows = table.getElementsByTagName("tr");
@@ -206,7 +264,7 @@ async function populateTable(when) {
 }
 
 // retrieves information from our server
-async function dataRetriever(when){
+async function dataRetriever(when, how){
     let payload;
 
     if(when === "today"){
@@ -226,6 +284,7 @@ async function dataRetriever(when){
 
         payload = {
             startDate,
+            how,
         }
     }
     else if(when === "tomorrow"){
@@ -247,6 +306,7 @@ async function dataRetriever(when){
 
         payload = {
             startDate,
+            how,
         }
     }
 
@@ -297,9 +357,11 @@ const tomorrowOutboundContainer = document.getElementById('tableContainerTomorro
 const todayInboundContainer = document.getElementById('tableContainerTodayInbound');
 const tomorrowInboundContainer = document.getElementById('tableContainerTomorrowInbound');
 
-window.onload = function(){
-    createTable("today");
-    createTable("tomorrow");
+window.onload = async function(){
+    await createTable("today", "outbnd");
+    await createTable("tomorrow", "outbnd");
+    await createTable("today", "inbnd");
+    await createTable("tomorrow", "inbnd");
 }
 
 const currentDateElements = document.getElementsByClassName("currentDate");
@@ -308,6 +370,10 @@ const currentDate = new Date();
 for(const element of currentDateElements){
     element.textContent = currentDate.toDateString();
 }
+
+setTimeout(function(){
+    location.reload();
+}, 60000);
 
 /* document.getElementById('searchButton').addEventListener('click', createTable);
 
