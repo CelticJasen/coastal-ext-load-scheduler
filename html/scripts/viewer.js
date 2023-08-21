@@ -368,7 +368,7 @@ const currentDateElements = document.getElementsByClassName("currentDate");
 const currentDate = new Date();
 
 for(const element of currentDateElements){
-    element.textContent = currentDate.toDateString();
+    element.textContent = `(${currentDate.toDateString()})`;
 }
 
 setTimeout(function(){
