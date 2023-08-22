@@ -422,8 +422,8 @@ app.post('/submit-read-form', async (req,res) => {
 
 app.post('/submit-input-form', async (req,res) => {
     try {
-        const { liftNumber, loadDateInput, loadTimeInput, delDateInput, delTimeInput, productInput, prodArray, quantityInput, originInput, carInput, custInput, billToInput, destCityInput, destStateInput } = req.body;
-        let insertQuery = `INSERT INTO dbo.Main (lift_num, load_date, load_time, del_date, del_time, product, product_array, quantity, origin, cust_name, bill_to, carrier, destination_city, destination_state) VALUES ('${liftNumber}', '${loadDateInput}',`;
+        const { liftNumber, loadDateInput, loadTimeInput, delDateInput, delTimeInput, productInput, prodArray, quantityInput, originInput,destCityInput, destStateInput, carInput, custInput, billToInput, username } = req.body;
+        let insertQuery = `INSERT INTO dbo.Main (lift_num, load_date, load_time, del_date, del_time, product, product_array, quantity, origin, cust_name, bill_to, carrier, destination_city, destination_state, editor) VALUES ('${liftNumber}', '${loadDateInput}',`;
 
         if(!loadTimeInput){
             insertQuery += `${loadTimeInput}, `;
@@ -441,7 +441,7 @@ app.post('/submit-input-form', async (req,res) => {
             insertQuery += `'${delTimeInput}', `;
         }
         
-        insertQuery += `'${productInput}', '${prodArray}', '${quantityInput}', '${originInput}', '${custInput}', '${billToInput}', '${carInput}', '${destCityInput}', '${destStateInput}');
+        insertQuery += `'${productInput}', '${prodArray}', '${quantityInput}', '${originInput}', '${custInput}', '${billToInput}', '${carInput}', '${destCityInput}', '${destStateInput}', '${username}');
             `;
         
         await databaseQuery(insertQuery, localConfig);
@@ -512,7 +512,7 @@ app.post('/read-ext-viewer', async (req, res) => {
     const { startDate, how, when } = req.body;
 
     try {
-        let query = "SELECT [ord_hdrnumber] AS [ID], NULL AS [lift_num], [DispStatus] AS [status], [cmd_name] AS [product], IIF([fgt_ordered_count]<>0, CONVERT(VARCHAR(10),[fgt_ordered_count]) + ' ' + CONVERT(VARCHAR(5),[fgt_countunit]), IIF([fgt_ordered_weight]<>0, CONVERT(VARCHAR(10),[fgt_ordered_weight]) + ' ' + CONVERT(VARCHAR(5),[fgt_weightunit]),IIF([fgt_ordered_volume]<>0,CONVERT(VARCHAR(10),[fgt_ordered_volume]) + ' ' + CONVERT(VARCHAR(5),[Unit]),'1 LOAD'))) AS [quantity], [PickupName] AS [originCompany], REPLACE([PickupCity], '/', '') AS [origin], [cmp_name] AS [cust_name], REPLACE([cty_nmstct], '/', '') AS [destinationCity], IIF(CONVERT(VARCHAR(10),[Load1],1)='01/01/50','OPEN',IIF([Load1]=[Load2],convert(varchar(10),[Load1], 1) + right(convert(varchar(32),[Load1],100),8),convert(varchar(10),[Load1], 1) + right(convert(varchar(32),[Load1],100),8) + ' - ' + convert(varchar(10),[Load2], 1) + right(convert(varchar(32),[Load2],100),8))) AS [loadTime], IIF(CONVERT(VARCHAR(10),[stp_schdtearliest],1)='01/01/50','OPEN',IIF([stp_schdtearliest]=[stp_schdtlatest],convert(varchar(10),[stp_schdtearliest], 1) + right(convert(varchar(32),[stp_schdtearliest],100),8),convert(varchar(10),[stp_schdtearliest], 1) + right(convert(varchar(32),[stp_schdtearliest],100),8) + ' - ' + convert(varchar(10),[stp_schdtlatest], 1) + right(convert(varchar(32),[stp_schdtlatest],100),8))) AS [delTime], IIF([Carrier] = 'UNKNOWN',IIF([Driver1Name] <>'UNKNOWN','FMCT','UNK'),[Carrier]) AS [carrier], [billTo] AS [bill_to], IIF([Driver1Name] = 'UNKNOWN','UNK',[Driver1Name]) AS [driver], IIF([Tractor] = 'UNKNOWN','UNK',[Tractor]) AS [truck], IIF([Trailer1] = 'UNKNOWN','UNK',[Trailer1]) AS [trailer], [PONum] AS [poNum], [DestPO] AS [destPONum], [RevType4] AS [pump], [ord_remark] AS [remarks] FROM [TMW_Live].[dbo].[RouteSheetView]";
+        let query = "SELECT [ord_hdrnumber] AS [ID], NULL AS [lift_num], [DispStatus] AS [status], [cmd_name] AS [product], IIF(([fgt_ordered_weight] = '1' AND [fgt_weightunit] = 'LBS') OR ([fgt_ordered_count] <> 0 AND CONVERT(VARCHAR(10), [fgt_ordered_count]) + ' ' + [fgt_countunit] = '1 LBS') OR ([fgt_ordered_count] = 0 AND [fgt_ordered_weight] = 0 AND [fgt_ordered_volume] = 0), 'FULL', IIF([fgt_ordered_count] <> 0, CONVERT(VARCHAR(10), [fgt_ordered_count]) + ' ' + [fgt_countunit], IIF([fgt_ordered_weight] <> 0, CONVERT(VARCHAR(10), [fgt_ordered_weight]) + ' ' + [fgt_weightunit], IIF([fgt_ordered_volume] <> 0, CONVERT(VARCHAR(10), [fgt_ordered_volume]) + ' ' + [Unit], '1 LOAD')))) AS [quantity], [PickupName] AS [originCompany], REPLACE([PickupCity], '/', '') AS [origin], [cmp_name] AS [cust_name], REPLACE([cty_nmstct], '/', '') AS [destinationCity], IIF(CONVERT(VARCHAR(10),[Load1],1)='01/01/50','OPEN',IIF([Load1]=[Load2],convert(varchar(10),[Load1], 1) + right(convert(varchar(32),[Load1],100),8),convert(varchar(10),[Load1], 1) + right(convert(varchar(32),[Load1],100),8) + ' - ' + convert(varchar(10),[Load2], 1) + right(convert(varchar(32),[Load2],100),8))) AS [loadTime], IIF(CONVERT(VARCHAR(10),[stp_schdtearliest],1)='01/01/50','OPEN',IIF([stp_schdtearliest]=[stp_schdtlatest],convert(varchar(10),[stp_schdtearliest], 1) + right(convert(varchar(32),[stp_schdtearliest],100),8),convert(varchar(10),[stp_schdtearliest], 1) + right(convert(varchar(32),[stp_schdtearliest],100),8) + ' - ' + convert(varchar(10),[stp_schdtlatest], 1) + right(convert(varchar(32),[stp_schdtlatest],100),8))) AS [delTime], IIF([Carrier] = 'UNKNOWN',IIF([Driver1Name] <>'UNKNOWN','FMCT','UNK'),[Carrier]) AS [carrier], [billTo] AS [bill_to], IIF([Driver1Name] = 'UNKNOWN','UNK',[Driver1Name]) AS [driver], IIF([Tractor] = 'UNKNOWN','UNK',[Tractor]) AS [truck], IIF([Trailer1] = 'UNKNOWN','UNK',[Trailer1]) AS [trailer], [PONum] AS [poNum], [DestPO] AS [destPONum], [RevType4] AS [pump], [ord_remark] AS [remarks] FROM [TMW_Live].[dbo].[RouteSheetView]";
 
         if(when === "tomorrow"){
             query += ` WHERE ((DATEPART(WEEKDAY, '${startDate}') = 7 AND '${startDate}' BETWEEN CONVERT(DATE, Load1) AND DATEADD(DAY, 2, CONVERT(DATE, Load2))) OR ('${startDate}' BETWEEN CONVERT(DATE, Load1) AND CONVERT(DATE, Load2)))`;
@@ -564,6 +564,7 @@ app.post('/update-record', async (req,res) => {
         let queryEnd = '';
         let query = '';
         let hasQuantity = true;
+        let editorUsernameQuery = '';
 
         const receivedArray = req.body;
         
@@ -595,6 +596,7 @@ app.post('/update-record', async (req,res) => {
             // if there's a quantity, then there definitely is a billTo and product since that's how the app is built. If something changes, this may need its own check.
             billToQuery += ` WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].billTo}'`;
             productQuery += ` WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].product}'`;
+            editorUsernameQuery += ` WHEN '${receivedArray[i].id}' THEN CONCAT(editor, '${receivedArray[i].username}')`;
 
             // we need a different ending depending on whether or not there are more records to edit
             if(i+1 == receivedArray.length){
@@ -636,6 +638,10 @@ app.post('/update-record', async (req,res) => {
             product =
                 CASE ID
                     ${productQuery}
+                END,
+            editor =
+                CASE ID
+                    ${editorUsernameQuery}
                 END
             WHERE ID IN (${queryEnd});
             `;
@@ -659,6 +665,10 @@ app.post('/update-record', async (req,res) => {
             del_date =
                 CASE ID
                     ${delDateQuery}
+                END,
+            editor =
+                CASE ID
+                    ${editorUsernameQuery}
                 END
             WHERE ID IN (${queryEnd});
             `;

@@ -179,6 +179,7 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
     if (response.token) {
         // Save the token in localStorage for future authenticated requests
         localStorage.setItem('token', response.token);
+        localStorage.setItem('username', username);
 
         // Show the protected route section and hide the login section
         document.getElementById('login').style.display = 'none';

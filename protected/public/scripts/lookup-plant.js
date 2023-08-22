@@ -82,12 +82,15 @@ function createTable() {
                 delTime === null;
             }
 
+            const username = `,${localStorage.getItem('username')}`;
+
             const payload = {
                 id,
                 loadDate,
                 loadTime,
                 delDate,
                 delTime,
+                username,
             };
             editArray.push(payload);
         });

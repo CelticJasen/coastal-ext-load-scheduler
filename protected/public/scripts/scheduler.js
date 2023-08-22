@@ -334,6 +334,9 @@ document.getElementById('submit_button').addEventListener('click', async (event)
                     resultContainer.appendChild(responseText);
                     throw new Error('Failed to enter data in required field/s.');
                 }
+
+                const username = localStorage.getItem('username');
+
                 const payload = {
                     liftNumber,
                     loadDateInput,
@@ -348,7 +351,8 @@ document.getElementById('submit_button').addEventListener('click', async (event)
                     destStateInput,
                     carInput,
                     custInput,
-                    billToInput
+                    billToInput,
+                    username,
                 };
                 
                 // Input information to our database

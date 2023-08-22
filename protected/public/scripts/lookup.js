@@ -93,6 +93,8 @@ function createTable() {
             const product = row.querySelector('.productEdit').value;
             const quantity = `${row.querySelector('.quantityEdit').value} ${row.querySelector('.quantityEditType').value}`;
             const billTo = row.querySelector('.billToEdit').value;
+
+            const username = `,${localStorage.getItem('username')}`;
     
             const payload = {
                 id,
@@ -103,9 +105,8 @@ function createTable() {
                 product,
                 quantity,
                 billTo,
+                username,
             };
-
-            console.log(payload);
             
             editArray.push(payload);
         });
