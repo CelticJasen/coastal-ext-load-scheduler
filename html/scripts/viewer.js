@@ -39,6 +39,41 @@ function customSort(a, b){
 
 function parseLoadTime(loadTime){
     if(loadTime === 'OPEN'){
+        new Date(`9999-12-31T00:00:00`)
+        return new Date('9999-12-31T00:00:00');
+    }
+
+    const cleanedTime = loadTime.replace(/ {2}/g, ' ');
+
+    if(cleanedTime.length === 7 || cleanedTime.length === 6){
+        const parts = cleanedTime.split(' ');
+        let timePart;
+
+        if(parts[0] && parts[0] !== ''){
+            timePart = convertToMilitaryTime(parts[0]);
+        }
+        else if(parts[1]){
+            timePart = convertToMilitaryTime(parts[1]);
+        }
+        else{
+            timePart = parts[0];
+        }
+
+        if(timePart){
+            return new Date(`9999-12-30T${timePart}`);
+        }
+        else{
+            return new Date(`9999-12-30T00:00:00`);
+        }
+    }
+    else{
+        return new Date('9999-12-30T00:00:00');
+    }
+}
+
+// Use this in case they want the dates in the Load Time section along with the times again.
+/* function parseLoadTime(loadTime){
+    if(loadTime === 'OPEN'){
         return new Date('9999-12-31T00:00:00');
     }
 
@@ -68,7 +103,7 @@ function parseLoadTime(loadTime){
     else{
         return new Date('9999-12-30T00:00:00');
     }
-}
+} */
 
 function convertToMilitaryTime(timeString) {
     const [time, period] = timeString.split(/(\d+:\d+)([APMapm]+)/).filter(Boolean);
