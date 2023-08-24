@@ -143,7 +143,7 @@ function formatMilitaryTime(timeIn){
 }
 
 // Function to dynamically create the table
-async function createTable(when, how) {
+async function createTable(when, how, who) {
 
     let table = document.createElement('table');
 
@@ -215,11 +215,11 @@ async function createTable(when, how) {
 
     tableDiv.appendChild(table);
 
-    await populateTable(when, how);
+    await populateTable(when, how, who);
 }
 
 // Function to dynamically populate the table with the responseData
-async function populateTable(when, how) {
+async function populateTable(when, how, who) {
 
     let tableBody;
 
@@ -237,7 +237,7 @@ async function populateTable(when, how) {
     }
 
     try{
-        const responseData = await dataRetriever(when, how);
+        const responseData = await dataRetriever(when, how, who);
         responseData.forEach(function (data) {
 
             let row = document.createElement('tr');
@@ -307,7 +307,7 @@ async function populateTable(when, how) {
 }
 
 // retrieves information from our server
-async function dataRetriever(when, how){
+async function dataRetriever(when, how, who){
     let payload;
 
     if(when === "today"){
@@ -329,6 +329,7 @@ async function dataRetriever(when, how){
             startDate,
             how,
             when,
+            who,
         }
     }
     else if(when === "tomorrow"){
@@ -352,6 +353,7 @@ async function dataRetriever(when, how){
             startDate,
             how,
             when,
+            who,
         }
     }
 
@@ -398,16 +400,16 @@ async function dataRetriever(when, how){
 }
 
 window.onload = async function(){
-    await createTable("today", "outbnd");
-    await createTable("tomorrow", "outbnd");
-    await createTable("today", "inbnd");
-    await createTable("tomorrow", "inbnd");
+    await createTable("today", "outbnd", "Main");
+    await createTable("tomorrow", "outbnd", "Main");
+    await createTable("today", "inbnd", "Main");
+    await createTable("tomorrow", "inbnd", "Main");
 }
 
 for(const element of currentDateElements){
     element.textContent = `(${currentDate.toDateString()})`;
 }
 
-setTimeout(function(){
+/* setTimeout(function(){
     location.reload();
-}, 60000);
+}, 180000); */
