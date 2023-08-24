@@ -521,24 +521,24 @@ app.post('/read-ext-viewer', async (req, res) => {
                 query += ` WHERE ((DATEPART(WEEKDAY, '${startDate}') = 7 AND '${startDate}' BETWEEN CONVERT(DATE, Load1) AND DATEADD(DAY, 2, CONVERT(DATE, Load2))) OR ('${startDate}' BETWEEN CONVERT(DATE, Load1) AND CONVERT(DATE, Load2)))`;
                 
                 if(how === "inbnd"){
-                    query += " AND [WS_Inbnd] = 'Y'";
+                    query += " AND [cmp_name] IN ('COASTAL ENERGY WILLOW RAIL', 'PLAINS ENERGY SERVICES') AND [cty_nmstct] = 'WILLOW SPRINGS,MO/'";
                 }
                 else if(how === "outbnd"){
-                    query += " AND [WS_Inbnd] = 'N'";
+                    query += " AND [PickupName] IN ('COASTAL ENERGY WILLOW RAIL', 'PLAINS ENERGY SERVICES') AND [PickupCity] = 'WILLOW SPRINGS,MO/'";
                 }
     
-                query += " AND (([RevType2] = 'ASPH') AND ([PickupId] = 'COAWIL' OR [PickupId] = 'PLAPOT' OR [cmp_id] = 'COAWIL' OR [cmp_id] = 'PLAPOT') AND CONVERT(VARCHAR(10),[stp_schdtlatest],1) > { fn NOW() } - 4) ORDER BY loadTime ASC;";
+                query += " AND (([RevType2] = 'ASPH') AND ([PickupId] = 'COAWIL' OR [PickupId] = 'PLAPOT' OR [cmp_id] = 'COAWIL' OR [cmp_id] = 'PLAPOT') AND  CONVERT(VARCHAR(10),[stp_schdtlatest],1) > { fn NOW() } - 4) ORDER BY loadTime ASC;";
             }
             else if(when === "today"){
                 query += ` WHERE '${startDate}' BETWEEN CONVERT(DATE, Load1) AND CONVERT(DATE, Load2)`;
                 if(how === "inbnd"){
-                    query += " AND [WS_Inbnd] = 'Y'";
+                    query += " AND [cmp_name] IN ('COASTAL ENERGY WILLOW RAIL', 'PLAINS ENERGY SERVICES') AND [cty_nmstct] = 'WILLOW SPRINGS,MO/'";
                 }
                 else if(how === "outbnd"){
-                    query += " AND [WS_Inbnd] = 'N'";
+                    query += " AND [PickupName] IN ('COASTAL ENERGY WILLOW RAIL', 'PLAINS ENERGY SERVICES') AND [PickupCity] = 'WILLOW SPRINGS,MO/'";
                 }
     
-                query += " AND (([RevType2] = 'ASPH') AND ([PickupId] = 'COAWIL' OR [PickupId] = 'PLAPOT' OR [cmp_id] = 'COAWIL' OR [cmp_id] = 'PLAPOT') AND CONVERT(VARCHAR(10),[stp_schdtlatest],1) > { fn NOW() } - 4) ORDER BY loadTime ASC;";
+                query += " AND (([RevType2] = 'ASPH') AND ([PickupId] = 'COAWIL' OR [PickupId] = 'PLAPOT' OR [cmp_id] = 'COAWIL' OR [cmp_id] = 'PLAPOT') AND  CONVERT(VARCHAR(10),[stp_schdtlatest],1) > { fn NOW() } - 4) ORDER BY loadTime ASC;";
             }
         }
         else if(who === 'Miller'){
