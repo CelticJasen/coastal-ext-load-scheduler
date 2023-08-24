@@ -405,7 +405,7 @@ app.get('/administrationScript', (req, res) => {
 app.post('/submit-read-form', async (req,res) => {
     try {
         const { number } = req.body;
-        const query = `SELECT c.ConRef, p.ProdName, t.TpName, d.DestCity, d.DestState, UPPER(CONVERT(varchar(3), cr.CarName1) + ISNULL(CONVERT(varchar(3), cr.CarCity), '')) AS CarName1, cu.Custname FROM DSI_REG_Contract c LEFT JOIN APM_ProdAllocation pa ON c.ConTermKey = pa.PAlcTerminal LEFT JOIN APM_Products p ON pa.PAlcProdKey = p.ProdEntityKey LEFT JOIN APM_CUSTOMER cu ON c.ConCustomerKey = cu.CustEntityKey LEFT JOIN APM_Terminal t ON pa.PAlcTerminal = t.TpEntityKey LEFT JOIN DSI_REG_ContractDestinations ao ON c.ConEntityKey = ao.ConDestContractKey LEFT JOIN APM_DESTINATION d ON ao.ConDestDestinationKey = d.DestEntityKey LEFT JOIN APM_CARRIERCUSTOMERS cc ON cc.CarCustCustKey = c.ConCustomerKey LEFT JOIN APM_CARRIER cr ON cc.CarCustCarKey = cr.CarEntityKey WHERE ConRef = '${number}' AND (ao.ConDestDelFlg IS NULL OR ao.ConDestDelFlg = 0) AND NOT cr.CarName1 = 'FMC Transport' AND DATEDIFF(Day, GETDATE(), c.ConStartDate) <= 5 AND DATEDIFF(Day, c.ConEndDate, GETDATE()) <= 5;`;
+        const query = `SELECT c.ConRef, p.ProdName, UPPER(t.TpCity + ',' + t.TpState) AS TpName, d.DestCity, d.DestState, UPPER(CONVERT(varchar(3), cr.CarName1) + ISNULL(CONVERT(varchar(3), cr.CarCity), '')) AS CarName1, UPPER(cu.Custname) AS Custname FROM DSI_REG_Contract c LEFT JOIN APM_ProdAllocation pa ON c.ConTermKey = pa.PAlcTerminal LEFT JOIN APM_Products p ON pa.PAlcProdKey = p.ProdEntityKey LEFT JOIN APM_CUSTOMER cu ON c.ConCustomerKey = cu.CustEntityKey LEFT JOIN APM_Terminal t ON pa.PAlcTerminal = t.TpEntityKey LEFT JOIN DSI_REG_ContractDestinations ao ON c.ConEntityKey = ao.ConDestContractKey LEFT JOIN APM_DESTINATION d ON ao.ConDestDestinationKey = d.DestEntityKey LEFT JOIN APM_CARRIERCUSTOMERS cc ON cc.CarCustCustKey = c.ConCustomerKey LEFT JOIN APM_CARRIER cr ON cc.CarCustCarKey = cr.CarEntityKey WHERE ConRef = '${number}' AND (ao.ConDestDelFlg IS NULL OR ao.ConDestDelFlg = 0) AND NOT cr.CarName1 = 'FMC Transport' AND DATEDIFF(Day, GETDATE(), c.ConStartDate) <= 5 AND DATEDIFF(Day, c.ConEndDate, GETDATE()) <= 5;`;
         const result = await databaseQuery(query, extConfig);
 
         const responseData = {
@@ -491,7 +491,7 @@ app.post('/read-reports-page', async (req, res) => {
 });
 
 app.post('/read-viewer', async (req, res) => {
-    const { startDate, how } = req.body;
+    const { startDate, how, when, who } = req.body;
 
     try {
         const query = `SELECT [ID], [lift_num], NULL AS [status], [product], [quantity], NULL AS [originCompany], [origin], [cust_name], [destination_city] + ', ' + [destination_state] AS [destinationCity], ISNULL(CONVERT(varchar(7), [load_time], 100), '') AS [loadTime], CONVERT(varchar, [del_date], 1) + CASE WHEN [del_date] IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), [del_time], 100), '') END AS [delTime], [carrier], [bill_to], NULL AS [driver], NULL AS [truck], NULL AS [trailer], NULL AS [poNum], NULL AS [destPONum], NULL AS [pump], NULL AS [remarks] FROM [External_load_scheduling].[dbo].[Main] WHERE [load_date] = '${startDate}' AND CONVERT(varchar, [del_date], 1) + CASE WHEN [del_date] IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), [del_time], 100), '') END > { fn NOW() } - 4 ORDER BY [load_time] ASC;`;
