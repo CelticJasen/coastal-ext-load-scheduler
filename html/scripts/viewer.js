@@ -294,10 +294,10 @@ async function populateTable(when, how, who) {
         for(let i = 0; i < rows.length; i++){
             const cell = rows[i].getElementsByTagName("td")[12];
             if(cell && cell.textContent === "CECHIRE"){
-                rows[i].style.backgroundColor = "lightgreen";
+                rows[i].className = "dim-green-row";
             }
             else if(cell && cell.textContent === "CUSTPU"){
-                rows[i].style.backgroundColor = "#FFCC99";
+                rows[i].className = "dim-orange-row";
             }
         }
     }

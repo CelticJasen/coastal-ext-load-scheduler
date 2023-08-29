@@ -8,6 +8,8 @@ h3{
     padding-left: 15px;
     padding-right: 15px;
     margin: 0px;
+    font-size: 2vw;
+    text-align: center;
 }
 
 #navigation {
@@ -37,10 +39,18 @@ h3{
 
 #navigation a:hover {
     color: grey;
-} 
+}
 
-.light-orange-row {
-    background-color: #EE550050 !important;
+.dim-green-row{
+    background-color: #00800055 !important;
+}
+
+.dim-orange-row {
+    background-color: #FFCC99CC !important;
+}
+
+.red-text{
+    color: darkred;
 }
 
 #logo1 {
@@ -92,7 +102,7 @@ h3{
     border-collapse: collapse;
     background-color: white;
     table-layout: auto;
-    margin-bottom: 3%;
+    margin-bottom: 1%;
 }
 
 .dynamicTable th,

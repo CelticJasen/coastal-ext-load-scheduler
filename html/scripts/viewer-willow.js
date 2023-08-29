@@ -263,6 +263,48 @@ async function populateTable(when, how, who) {
                             cell.textContent = '';
                         }
                     }
+                    else if(key === 'display'){
+                        cell = document.createElement('button');
+                        cell.dataset.id = `${data.ID}`;
+                        cell.innerText = 'MARK COMPLETE';
+                        cell.style.width = '100%';
+                        cell.addEventListener('click', async (event) => {
+                            event.preventDefault();
+                
+                            const number = cell.getAttribute("data-id");
+                            let initials
+                            do{
+                                initials = prompt("Are you sure you want to mark this load as complete? Please enter your initials.");
+                            }while(initials !== null && initials === "")
+                
+                            if(initials !== null && initials !== "" && confirm(`Are you sure you want to mark load with ID ${number} as complete?`) == true){
+                                console.log(initials);
+                                const payload = {
+                                    number,
+                                    initials,
+                                };
+                            
+                                try {
+                                    const response = await fetch('/update-display-status', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                        },
+                                        body: JSON.stringify(payload),
+                                    });
+                            
+                                    if (!response.ok) {
+                                        throw new Error('Failed to fetch data from server.');
+                                    }
+                                    
+                                    location.reload();
+                                    
+                                } catch (error) {
+                                        console.error('Uh oh!', error);
+                                }
+                            }
+                        });
+                    }
                     else {
                         cell.textContent = data[key];
                     }
@@ -294,10 +336,10 @@ async function populateTable(when, how, who) {
         for(let i = 0; i < rows.length; i++){
             const cell = rows[i].getElementsByTagName("td")[12];
             if(cell && cell.textContent === "CECHIRE"){
-                rows[i].style.backgroundColor = "lightgreen";
+                rows[i].className = "dim-green-row";
             }
             else if(cell && cell.textContent === "CUSTPU"){
-                rows[i].style.backgroundColor = "#FFCC99";
+                rows[i].className = "dim-orange-row";
             }
         }
     }

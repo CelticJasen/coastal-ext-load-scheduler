@@ -422,8 +422,8 @@ app.post('/submit-read-form', async (req,res) => {
 
 app.post('/submit-input-form', async (req,res) => {
     try {
-        const { liftNumber, loadDateInput, loadTimeInput, delDateInput, delTimeInput, productInput, prodArray, quantityInput, originInput,destCityInput, destStateInput, carInput, custInput, billToInput, username } = req.body;
-        let insertQuery = `INSERT INTO dbo.Main (lift_num, load_date, load_time, del_date, del_time, product, product_array, quantity, origin, cust_name, bill_to, carrier, destination_city, destination_state, editor) VALUES ('${liftNumber}', '${loadDateInput}',`;
+        const { liftNumber, loadDateInput, loadTimeInput, delDateInput, delTimeInput, productInput, prodArray, quantityInput, originInput,destCityInput, destStateInput, carInput, custInput, billToInput, trailerInput, username } = req.body;
+        let insertQuery = `INSERT INTO dbo.Main (lift_num, load_date, load_time, del_date, del_time, product, product_array, quantity, origin, cust_name, bill_to, carrier, destination_city, destination_state, trailer_number, editor) VALUES ('${liftNumber}', '${loadDateInput}',`;
 
         if(!loadTimeInput){
             insertQuery += `${loadTimeInput}, `;
@@ -441,12 +441,17 @@ app.post('/submit-input-form', async (req,res) => {
             insertQuery += `'${delTimeInput}', `;
         }
         
-        insertQuery += `'${productInput}', '${prodArray}', '${quantityInput}', '${originInput}', '${custInput}', '${billToInput}', '${carInput}', '${destCityInput}', '${destStateInput}', '${username}');
+        insertQuery += `'${productInput}', '${prodArray}', '${quantityInput}', '${originInput}', '${custInput}', '${billToInput}', '${carInput}', '${destCityInput}', '${destStateInput}', '${trailerInput}', '${username}');
             `;
         
         await databaseQuery(insertQuery, localConfig);
 
         res.status(200).send('Data inserted successfully.');
+
+        insertQuery = 'INSERT INTO [History] ([ID], [lift_num], [load_date], [load_time], [del_date], [del_time], [product], [product_array], [quantity], [origin], [cust_name], [carrier], [bill_to], [destination_city], [destination_state], [trailer_number], [editor], [timestamp], [display], [completed_by]) SELECT [ID], [lift_num], [load_date], [load_time], [del_date], [del_time], [product], [product_array], [quantity], [origin], [cust_name], [carrier], [bill_to], [destination_city], [destination_state], [trailer_number], [editor], [timestamp], [display], [completed_by] FROM [Main] WHERE ID = (SELECT MAX([ID]) FROM [Main]);';
+
+        databaseQuery(insertQuery, localConfig);
+
     } catch (error) {
         console.error('Error inserting data: ', error);
         res.status(500).send('Error inserting data');
@@ -494,7 +499,7 @@ app.post('/read-viewer', async (req, res) => {
     const { startDate, how, when, who } = req.body;
 
     try {
-        const query = `SELECT [ID], [lift_num], NULL AS [status], [product], [quantity], NULL AS [originCompany], [origin], [cust_name], [destination_city] + ', ' + [destination_state] AS [destinationCity], ISNULL(CONVERT(varchar(7), [load_time], 100), '') AS [loadTime], CONVERT(varchar, [del_date], 1) + CASE WHEN [del_date] IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), [del_time], 100), '') END AS [delTime], [carrier], [bill_to], NULL AS [driver], NULL AS [truck], NULL AS [trailer], NULL AS [poNum], NULL AS [destPONum], NULL AS [pump], NULL AS [remarks] FROM [External_load_scheduling].[dbo].[Main] WHERE [load_date] = '${startDate}' AND CONVERT(varchar, [del_date], 1) + CASE WHEN [del_date] IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), [del_time], 100), '') END > { fn NOW() } - 4 ORDER BY [load_time] ASC;`;
+        const query = `SELECT [ID], [lift_num], NULL AS [status], [product], [quantity], NULL AS [originCompany], [origin], [cust_name], [destination_city] + ', ' + [destination_state] AS [destinationCity], ISNULL(CONVERT(varchar(7), [load_time], 100), '') AS [loadTime], CONVERT(varchar, [del_date], 1) + CASE WHEN [del_date] IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), [del_time], 100), '') END AS [delTime], [carrier], [bill_to], NULL AS [driver], NULL AS [truck], [trailer_number] AS [trailer], NULL AS [poNum], NULL AS [destPONum], NULL AS [pump], NULL AS [remarks], [display] FROM [External_load_scheduling].[dbo].[Main] WHERE [display] = 1 AND [load_date] = '${startDate}' AND CONVERT(varchar, [del_date], 1) + CASE WHEN [del_date] IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), [del_time], 100), '') END > { fn NOW() } - 4 ORDER BY [load_time] ASC;`;
         const result = await databaseQuery(query, localConfig);
 
         const responseData = {
@@ -636,6 +641,22 @@ app.post('/read-ext-viewer', async (req, res) => {
     }
 });
 
+app.post('/update-display-status', async(req,res) => {
+    try{
+        const id = req.body;
+        console.log(id);
+
+        let query = `UPDATE [External_load_scheduling].[dbo].[Main] SET [display] = 0, [completed_by] = '${id.initials}' WHERE [ID] = ${id.number};`;
+
+        const response = await databaseQuery(query, localConfig);
+
+        res.json(response);
+    } catch (error) {
+        console.error('Error updating record: ', error);
+        res.status(500).json({error: 'Internal server error'});
+    }
+});
+
 app.post('/update-record', async (req,res) => {
     try {
 
@@ -653,7 +674,7 @@ app.post('/update-record', async (req,res) => {
 
         const receivedArray = req.body;
         
-        for (i=0; i< receivedArray.length;i++){
+        for (i=0; i < receivedArray.length; i++){
             loadDateQuery += ` WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].loadDate}'`;
             if(receivedArray[i].loadTime){
                 loadTimeQuery += ` WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].loadTime}'`;
@@ -762,6 +783,13 @@ app.post('/update-record', async (req,res) => {
         const response = await databaseQuery(query, localConfig);
 
         res.json(response);
+
+        for (i=0; i < receivedArray.length; i++){
+            query = `INSERT INTO [History] ([ID], [lift_num], [load_date], [load_time], [del_date], [del_time], [product], [product_array], [quantity], [origin], [cust_name], [carrier], [bill_to], [destination_city], [destination_state], [trailer_number], [editor], [timestamp], [display], [completed_by]) SELECT [ID], [lift_num], [load_date], [load_time], [del_date], [del_time], [product], [product_array], [quantity], [origin], [cust_name], [carrier], [bill_to], [destination_city], [destination_state], [trailer_number], [editor], [timestamp], [display], [completed_by] FROM [Main] WHERE ID = '${receivedArray[i].id}';`;
+    
+            await databaseQuery(query, localConfig);
+        }
+
     } catch (error) {
         console.error('Error updating record: ', error);
         res.status(500).json({error: 'Internal server error'});

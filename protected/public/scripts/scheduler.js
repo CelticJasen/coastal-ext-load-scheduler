@@ -158,19 +158,15 @@ document.getElementById('submit_button').addEventListener('click', async (event)
             loadDate.setAttribute('class', 'formInput');
             loadDate.setAttribute('required', true);
 
-            loadTime.setAttribute('type', 'time');
+            loadTime.setAttribute('type', 'text');
             loadTime.setAttribute('class', 'formInput');
-            loadTime.setAttribute('step', '1800');
-            loadTime.setAttribute('onblur','roundTimeToHalfHour(this)');
 
             delDate.setAttribute('type', 'date');
             delDate.setAttribute('class', 'formInput');
             delDate.setAttribute('required', true);
 
-            delTime.setAttribute('type', 'time');
+            delTime.setAttribute('type', 'text');
             delTime.setAttribute('class', 'formInput');
-            delTime.setAttribute('step', '1800');
-            delTime.setAttribute('onblur','roundTimeToHalfHour(this)');
 
             productQuantity.setAttribute('type', 'number');
             productQuantity.setAttribute('class', 'formInput');
@@ -198,9 +194,6 @@ document.getElementById('submit_button').addEventListener('click', async (event)
             quantityLabel.appendChild(gallonsOption);
             quantityLabel.appendChild(tonsOption);
 
-
-
-
             const countyInput = document.createElement('select');
             countyInput.setAttribute('class', 'formInput');
 
@@ -227,10 +220,11 @@ document.getElementById('submit_button').addEventListener('click', async (event)
             quantityDiv.appendChild(productQuantity);
             quantityDiv.appendChild(quantityLabel);
             sched_form.appendChild(quantityDiv);
+            sched_form.appendChild(createFormDiv('trailerDiv', 'Trailer #:'));
             sched_form.appendChild(createFormDiv('originDiv', '<span>*</span>Origin:', tpNames));
-            sched_form.appendChild(createFormDiv('cityDiv', '<span>*</span>City:', destCities));
-            sched_form.appendChild(createFormDiv('stateDiv', '<span>*</span>State:', destStates));
-            sched_form.appendChild(createFormDiv('countyDiv', 'County:', uniqueData(countyInput)));
+            sched_form.appendChild(createFormDiv('cityDiv', '<span>*</span>Destination City:', destCities));
+            sched_form.appendChild(createFormDiv('stateDiv', '<span>*</span>Destination State:', destStates));
+            sched_form.appendChild(createFormDiv('countyDiv', 'Destination County:', uniqueData(countyInput)));
             sched_form.appendChild(createFormDiv('carDiv', '<span>*</span>Carrier:', carNames));
             sched_form.appendChild(createFormDiv('billDiv', '<span>*</span>Bill to:', billNames));
             sched_form.appendChild(createFormDiv('custDiv', '<span>*</span>Customer:', custNames));
@@ -253,6 +247,7 @@ document.getElementById('submit_button').addEventListener('click', async (event)
                 'productInput',
                 'quantityInput',
                 'quantityLabel',
+                'trailerInput',
                 'originInput',
                 'destCityInput',
                 'destStateInput',
@@ -270,6 +265,20 @@ document.getElementById('submit_button').addEventListener('click', async (event)
                 child.setAttribute('name', inputName);
                 child.setAttribute('id', inputName);
             }
+
+            flatpickr("#loadTimeInput", {
+                enableTime: true,
+                noCalendar: true,
+                dateFormat: "H:i",
+                minuteIncrement: 30,
+            });
+
+            flatpickr("#delTimeInput", {
+                enableTime: true,
+                noCalendar: true,
+                dateFormat: "H:i",
+                minuteIncrement: 30,
+            });
 
             // scrolls to bottom of page on button click
             window.scrollTo({ left: 0, top: document.body.scrollHeight, behavior: 'smooth' });
@@ -300,6 +309,7 @@ document.getElementById('submit_button').addEventListener('click', async (event)
                 const productInput = document.getElementById('productInput').value;
                 const prodArray = prodNames;
                 const quantityInput = `${document.getElementById('quantityInput').value} ${document.getElementById('quantityLabel').value}`;
+                const trailerInput = document.getElementById('trailerInput').value;
                 const originInput = document.getElementById('originInput').value;
                 const destCityInput = document.getElementById('destCityInput').value;
                 const destStateInput = document.getElementById('destStateInput').value;
@@ -357,6 +367,7 @@ document.getElementById('submit_button').addEventListener('click', async (event)
                     carInput,
                     custInput,
                     billToInput,
+                    trailerInput,
                     username,
                 };
                 
@@ -393,7 +404,6 @@ document.getElementById('submit_button').addEventListener('click', async (event)
 
 document.getElementById('submit_inbound_button').addEventListener('click', async (event) => {
     event.preventDefault();
-    console.log('submit_inbound_button pressed');
     
     // tries to remove previous form
     if (document.getElementById('schedule_form')) {
@@ -496,10 +506,11 @@ document.getElementById('submit_inbound_button').addEventListener('click', async
     quantityDiv.appendChild(productQuantity);
     quantityDiv.appendChild(quantityLabel);
     sched_form.appendChild(quantityDiv);
+    sched_form.appendChild(createFormDiv('trailerDiv', 'Trailer #:'));
     sched_form.appendChild(createFormDiv('originDiv', '<span>*</span>Origin:', tpNames));
-    sched_form.appendChild(createFormDiv('cityDiv', '<span>*</span>City:'));
-    sched_form.appendChild(createFormDiv('stateDiv', '<span>*</span>State:', destStates));
-    sched_form.appendChild(createFormDiv('countyDiv', 'County:', uniqueData(countyInput)));
+    sched_form.appendChild(createFormDiv('cityDiv', '<span>*</span>Destination City:'));
+    sched_form.appendChild(createFormDiv('stateDiv', '<span>*</span>Destination State:', destStates));
+    sched_form.appendChild(createFormDiv('countyDiv', 'Destination County:', uniqueData(countyInput)));
     sched_form.appendChild(createFormDiv('carDiv', '<span>*</span>Carrier:', carNames));
     sched_form.appendChild(createFormDiv('billDiv', '<span>*</span>Bill to:', billNames));
     sched_form.appendChild(createFormDiv('custDiv', '<span>*</span>Customer:'));
@@ -518,6 +529,7 @@ document.getElementById('submit_inbound_button').addEventListener('click', async
         'productInput',
         'quantityInput',
         'quantityLabel',
+        'trailerInput',
         'originInput',
         'destCityInput',
         'destStateInput',
@@ -533,6 +545,20 @@ document.getElementById('submit_inbound_button').addEventListener('click', async
         children[i].setAttribute('name', inputNames[i]);
         children[i].setAttribute('id', inputNames[i]);
     }
+
+    flatpickr("#loadTimeInput", {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        minuteIncrement: 30,
+    });
+
+    flatpickr("#delTimeInput", {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        minuteIncrement: 30,
+    });
 
     // scrolls to bottom of page on button click
     window.scrollTo({ left: 0, top: document.body.scrollHeight, behavior: 'smooth' });
@@ -563,6 +589,7 @@ document.getElementById('submit_inbound_button').addEventListener('click', async
         const productInput = document.getElementById('productInput').value;
         const prodArray = document.getElementById('productInput').value;
         const quantityInput = `${document.getElementById('quantityInput').value} ${document.getElementById('quantityLabel').value}`;
+        const trailerInput = document.getElementById('trailerInput').value;
         const originInput = document.getElementById('originInput').value;
         const destCityInput = document.getElementById('destCityInput').value;
         const destStateInput = document.getElementById('destStateInput').value;
@@ -620,6 +647,7 @@ document.getElementById('submit_inbound_button').addEventListener('click', async
             carInput,
             custInput,
             billToInput,
+            trailerInput,
             username,
         };
         
