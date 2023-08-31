@@ -161,6 +161,7 @@ function populateTable(responseData) {
                 else if (key === 'delTimeFormatted'){
                     if(data[key] !== null){
                         delTimeEdit.setAttribute('value', data[key]);
+                        delTimeEdit.setAttribute('readonly', true)
                     }
                     cell.appendChild(delTimeEdit);
                 }
@@ -222,10 +223,13 @@ document.getElementById('submit_button').addEventListener('click', async (event)
   
     // retrieves information from our server
 
+    const plant = true;
+
     const payload = {
         number,
         date,
-        delDate
+        delDate,
+        plant,
     };
 
     try {

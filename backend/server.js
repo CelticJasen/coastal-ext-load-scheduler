@@ -406,6 +406,7 @@ app.post('/submit-read-form', async (req,res) => {
     try {
         const { number } = req.body;
         const query = `SELECT c.ConRef, p.ProdName, UPPER(t.TpCity + ',' + t.TpState) AS TpName, d.DestCity, d.DestState, UPPER(CONVERT(varchar(3), cr.CarName1) + ISNULL(CONVERT(varchar(3), cr.CarCity), '')) AS CarName1, UPPER(cu.Custname) AS Custname FROM DSI_REG_Contract c LEFT JOIN APM_ProdAllocation pa ON c.ConTermKey = pa.PAlcTerminal LEFT JOIN APM_Products p ON pa.PAlcProdKey = p.ProdEntityKey LEFT JOIN APM_CUSTOMER cu ON c.ConCustomerKey = cu.CustEntityKey LEFT JOIN APM_Terminal t ON pa.PAlcTerminal = t.TpEntityKey LEFT JOIN DSI_REG_ContractDestinations ao ON c.ConEntityKey = ao.ConDestContractKey LEFT JOIN APM_DESTINATION d ON ao.ConDestDestinationKey = d.DestEntityKey LEFT JOIN APM_CARRIERCUSTOMERS cc ON cc.CarCustCustKey = c.ConCustomerKey LEFT JOIN APM_CARRIER cr ON cc.CarCustCarKey = cr.CarEntityKey WHERE ConRef = '${number}' AND (ao.ConDestDelFlg IS NULL OR ao.ConDestDelFlg = 0) AND NOT cr.CarName1 = 'FMC Transport' AND DATEDIFF(Day, GETDATE(), c.ConStartDate) <= 5 AND DATEDIFF(Day, c.ConEndDate, GETDATE()) <= 5;`;
+
         const result = await databaseQuery(query, extConfig);
 
         const responseData = {
@@ -422,8 +423,9 @@ app.post('/submit-read-form', async (req,res) => {
 
 app.post('/submit-input-form', async (req,res) => {
     try {
-        const { liftNumber, loadDateInput, loadTimeInput, delDateInput, delTimeInput, productInput, prodArray, quantityInput, originInput,destCityInput, destStateInput, carInput, custInput, billToInput, trailerInput, username } = req.body;
-        let insertQuery = `INSERT INTO dbo.Main (lift_num, load_date, load_time, del_date, del_time, product, product_array, quantity, origin, cust_name, bill_to, carrier, destination_city, destination_state, trailer_number, editor) VALUES ('${liftNumber}', '${loadDateInput}',`;
+        const { liftNumber, loadDateInput, loadTimeInput, delDateInput, delTimeInput, productInput, prodArray, quantityInput, originInput,destCityInput, originCompanyInput, destStateInput, carInput, custInput, billToInput, trailerInput, username } = req.body;
+
+        let insertQuery = `INSERT INTO dbo.Main (lift_num, load_date, load_time, del_date, del_time, product, product_array, quantity, origin, cust_name, origin_company, bill_to, carrier, destination_city, destination_state, trailer_number, editor) VALUES ('${liftNumber}', '${loadDateInput}',`;
 
         if(!loadTimeInput){
             insertQuery += `${loadTimeInput}, `;
@@ -441,14 +443,14 @@ app.post('/submit-input-form', async (req,res) => {
             insertQuery += `'${delTimeInput}', `;
         }
         
-        insertQuery += `'${productInput}', '${prodArray}', '${quantityInput}', '${originInput}', '${custInput}', '${billToInput}', '${carInput}', '${destCityInput}', '${destStateInput}', '${trailerInput}', '${username}');
+        insertQuery += `'${productInput}', '${prodArray}', '${quantityInput}', '${originInput}', '${custInput}', '${originCompanyInput}', '${billToInput}', '${carInput}', '${destCityInput}', '${destStateInput}', '${trailerInput}', '${username}');
             `;
         
         await databaseQuery(insertQuery, localConfig);
 
         res.status(200).send('Data inserted successfully.');
 
-        insertQuery = 'INSERT INTO [History] ([ID], [lift_num], [load_date], [load_time], [del_date], [del_time], [product], [product_array], [quantity], [origin], [cust_name], [carrier], [bill_to], [destination_city], [destination_state], [trailer_number], [editor], [timestamp], [display], [completed_by]) SELECT [ID], [lift_num], [load_date], [load_time], [del_date], [del_time], [product], [product_array], [quantity], [origin], [cust_name], [carrier], [bill_to], [destination_city], [destination_state], [trailer_number], [editor], [timestamp], [display], [completed_by] FROM [Main] WHERE ID = (SELECT MAX([ID]) FROM [Main]);';
+        insertQuery = 'INSERT INTO [History] ([ID], [lift_num], [load_date], [load_time], [del_date], [del_time], [product], [product_array], [quantity], [origin], [cust_name], [origin_company], [carrier], [bill_to], [destination_city], [destination_state], [trailer_number], [editor], [timestamp], [display], [completed_by]) SELECT [ID], [lift_num], [load_date], [load_time], [del_date], [del_time], [product], [product_array], [quantity], [origin], [cust_name], [origin_company], [carrier], [bill_to], [destination_city], [destination_state], [trailer_number], [editor], [timestamp], [display], [completed_by] FROM [Main] WHERE ID = (SELECT MAX([ID]) FROM [Main]);';
 
         databaseQuery(insertQuery, localConfig);
 
@@ -463,7 +465,17 @@ app.post('/read-report', async (req,res) => {
         const number = req.body.number;
         const date = formatDateTime(req.body.date);
         const delDate = formatDateTime(req.body.delDate);
-        const query = `SELECT ID, lift_num, CONVERT(varchar, load_date, 120) AS convertedLoadDate, CONVERT(varchar(5), load_time, 108) AS loadTimeFormatted, CONVERT(varchar, del_date, 120) AS convertedDelDate, CONVERT(varchar(5), del_time, 108) AS delTimeFormatted, product, quantity, origin, cust_name, carrier, bill_to, destination_city, destination_state, CONVERT(varchar(16), timestamp, 120) AS timestamp, product_array FROM Main WHERE ID = '${number}' OR CONVERT(date, '${date}') = CONVERT(date, load_date) OR CONVERT(date, '${delDate}') = CONVERT(date, del_date)`;
+        const plant = req.body.plant;
+
+        let query;
+
+        if(plant){
+            query = `SELECT ID, lift_num, CONVERT(varchar, load_date, 120) AS convertedLoadDate, CONVERT(varchar(5), load_time, 108) AS loadTimeFormatted, CONVERT(varchar, del_date, 120) AS convertedDelDate, CONVERT(varchar(5), del_time, 108) AS delTimeFormatted, product, quantity, origin, cust_name, carrier, bill_to, destination_city, destination_state, CONVERT(varchar(16), timestamp, 120) AS timestamp, product_array FROM Main WHERE NOT lift_num = '' AND (ID = '${number}' OR CONVERT(date, '${date}') = CONVERT(date, load_date) OR CONVERT(date, '${delDate}') = CONVERT(date, del_date));`;
+        }
+        else{
+            query = `SELECT ID, lift_num, CONVERT(varchar, load_date, 120) AS convertedLoadDate, CONVERT(varchar(5), load_time, 108) AS loadTimeFormatted, CONVERT(varchar, del_date, 120) AS convertedDelDate, CONVERT(varchar(5), del_time, 108) AS delTimeFormatted, product, quantity, origin, cust_name, carrier, bill_to, destination_city, destination_state, CONVERT(varchar(16), timestamp, 120) AS timestamp, product_array FROM Main WHERE ID = '${number}' OR CONVERT(date, '${date}') = CONVERT(date, load_date) OR CONVERT(date, '${delDate}') = CONVERT(date, del_date);`;
+        }
+
         const result = await databaseQuery(query, localConfig);
 
         const responseData = {
@@ -498,8 +510,69 @@ app.post('/read-reports-page', async (req, res) => {
 app.post('/read-viewer', async (req, res) => {
     const { startDate, how, when, who } = req.body;
 
+    //console.log(startDate, how, when, who);
+
     try {
-        const query = `SELECT [ID], [lift_num], NULL AS [status], [product], [quantity], NULL AS [originCompany], [origin], [cust_name], [destination_city] + ', ' + [destination_state] AS [destinationCity], ISNULL(CONVERT(varchar(7), [load_time], 100), '') AS [loadTime], CONVERT(varchar, [del_date], 1) + CASE WHEN [del_date] IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), [del_time], 100), '') END AS [delTime], [carrier], [bill_to], NULL AS [driver], NULL AS [truck], [trailer_number] AS [trailer], NULL AS [poNum], NULL AS [destPONum], NULL AS [pump], NULL AS [remarks], [display] FROM [External_load_scheduling].[dbo].[Main] WHERE [display] = 1 AND [load_date] = '${startDate}' AND CONVERT(varchar, [del_date], 1) + CASE WHEN [del_date] IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), [del_time], 100), '') END > { fn NOW() } - 4 ORDER BY [load_time] ASC;`;
+        let query = "SELECT [ID], [lift_num], NULL AS [status], [product], [quantity], [origin_company] AS [originCompany], [origin], [cust_name], [destination_city] + ', ' + [destination_state] AS [destinationCity], ISNULL(CONVERT(varchar(7), [load_time], 100), '') AS [loadTime], CONVERT(varchar, [del_date], 1) + CASE WHEN [del_date] IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), [del_time], 100), '') END AS [delTime], [carrier], [bill_to], NULL AS [driver], NULL AS [truck], [trailer_number] AS [trailer], NULL AS [poNum], NULL AS [destPONum], NULL AS [pump], NULL AS [remarks], [display] FROM [External_load_scheduling].[dbo].[Main] ";
+
+        if(who === 'Willow'){
+            if(when === 'tomorrow'){
+                if(how === 'inbnd'){
+                    query += `WHERE ([cust_name] = 'PLAINS ENERGY SERVICES' OR [cust_name] = 'COASTAL ENERGY WILLOW RAIL' OR [cust_name] = 'PLAINS ENERGY WILLOW') AND [display] = 1 AND [load_date] = '${startDate}' AND CONVERT(varchar, [del_date], 1) + CASE WHEN [del_date] IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), [del_time], 100), '') END > { fn NOW() } - 4 ORDER BY [load_time] ASC;`;
+                }
+                else if(how === 'outbnd'){
+                    query += `WHERE ([origin_company] = 'PLAINS ENERGY SERVICES' OR [origin_company] = 'COASTAL ENERGY WILLOW RAIL' OR [origin_company] = 'PLAINS ENERGY WILLOW') AND [display] = 1 AND [load_date] = '${startDate}' AND CONVERT(varchar, [del_date], 1) + CASE WHEN [del_date] IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), [del_time], 100), '') END > { fn NOW() } - 4 ORDER BY [load_time] ASC;`;
+                }
+            }
+            else if(when === 'today'){
+                if(how === 'inbnd'){
+                    query += `WHERE ([cust_name] = 'PLAINS ENERGY SERVICES' OR [cust_name] = 'COASTAL ENERGY WILLOW RAIL' OR [cust_name] = 'PLAINS ENERGY WILLOW') AND [display] = 1 AND [load_date] = '${startDate}' AND CONVERT(varchar, [del_date], 1) + CASE WHEN [del_date] IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), [del_time], 100), '') END > { fn NOW() } - 4 ORDER BY [load_time] ASC;`;
+                }
+                else if(how === 'outbnd'){
+                    query += `WHERE ([origin_company] = 'PLAINS ENERGY SERVICES' OR [origin_company] = 'COASTAL ENERGY WILLOW RAIL' OR [origin_company] = 'PLAINS ENERGY WILLOW') AND [display] = 1 AND [load_date] = '${startDate}' AND CONVERT(varchar, [del_date], 1) + CASE WHEN [del_date] IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), [del_time], 100), '') END > { fn NOW() } - 4 ORDER BY [load_time] ASC;`;
+                }
+            }
+        }
+        else if(who === 'Miller'){
+            if(when === 'tomorrow'){
+                if(how === 'inbnd'){
+                    query += `WHERE ([cust_name] = 'PLAINS ENERGY MILLER' OR [cust_name] = 'COASTAL ENERGY MILLER RAIL' OR [cust_name] = 'PLAINS ENERGY MILLER') AND [display] = 1 AND [load_date] = '${startDate}' AND CONVERT(varchar, [del_date], 1) + CASE WHEN [del_date] IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), [del_time], 100), '') END > { fn NOW() } - 4 ORDER BY [load_time] ASC;`;
+                }
+                else if(how === 'outbnd'){
+                    query += `WHERE ([origin_company] = 'PLAINS ENERGY MILLER' OR [origin_company] = 'COASTAL ENERGY MILLER RAIL' OR [origin_company] = 'PLAINS ENERGY MILLER') AND [display] = 1 AND [load_date] = '${startDate}' AND CONVERT(varchar, [del_date], 1) + CASE WHEN [del_date] IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), [del_time], 100), '') END > { fn NOW() } - 4 ORDER BY [load_time] ASC;`;
+                }
+            }
+            else if(when === 'today'){
+                if(how === 'inbnd'){
+                    query += `WHERE ([cust_name] = 'PLAINS ENERGY MILLER' OR [cust_name] = 'COASTAL ENERGY MILLER RAIL' OR [cust_name] = 'PLAINS ENERGY MILLER') AND [display] = 1 AND [load_date] = '${startDate}' AND CONVERT(varchar, [del_date], 1) + CASE WHEN [del_date] IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), [del_time], 100), '') END > { fn NOW() } - 4 ORDER BY [load_time] ASC;`;
+                }
+                else if(how === 'outbnd'){
+                    query += `WHERE ([origin_company] = 'PLAINS ENERGY MILLER' OR [origin_company] = 'COASTAL ENERGY MILLER RAIL' OR [origin_company] = 'PLAINS ENERGY MILLER') AND [display] = 1 AND [load_date] = '${startDate}' AND CONVERT(varchar, [del_date], 1) + CASE WHEN [del_date] IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), [del_time], 100), '') END > { fn NOW() } - 4 ORDER BY [load_time] ASC;`;
+                }
+            }
+        }
+        else if(who === 'Clinton'){
+            if(when === 'tomorrow'){
+                if(how === 'inbnd'){
+                    query += `WHERE ([cust_name] = 'PLAINS ENERGY CLINTON' OR [cust_name] = 'COASTAL ENERGY CLINTON RAIL' OR [cust_name] = 'PLAINS ENERGY CLINTON') AND [display] = 1 AND [load_date] = '${startDate}' AND CONVERT(varchar, [del_date], 1) + CASE WHEN [del_date] IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), [del_time], 100), '') END > { fn NOW() } - 4 ORDER BY [load_time] ASC;`;
+                }
+                else if(how === 'outbnd'){
+                    query += `WHERE ([origin_company] = 'PLAINS ENERGY CLINTON' OR [origin_company] = 'COASTAL ENERGY CLINTON RAIL' OR [origin_company] = 'PLAINS ENERGY CLINTON') AND [display] = 1 AND [load_date] = '${startDate}' AND CONVERT(varchar, [del_date], 1) + CASE WHEN [del_date] IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), [del_time], 100), '') END > { fn NOW() } - 4 ORDER BY [load_time] ASC;`;
+                }
+            }
+            else if(when === 'today'){
+                if(how === 'inbnd'){
+                    query += `WHERE ([cust_name] = 'PLAINS ENERGY CLINTON' OR [cust_name] = 'COASTAL ENERGY CLINTON RAIL' OR [cust_name] = 'PLAINS ENERGY CLINTON') AND [display] = 1 AND [load_date] = '${startDate}' AND CONVERT(varchar, [del_date], 1) + CASE WHEN [del_date] IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), [del_time], 100), '') END > { fn NOW() } - 4 ORDER BY [load_time] ASC;`;
+                }
+                else if(how === 'outbnd'){
+                    query += `WHERE ([origin_company] = 'PLAINS ENERGY CLINTON' OR [origin_company] = 'COASTAL ENERGY CLINTON RAIL' OR [origin_company] = 'PLAINS ENERGY CLINTON') AND [display] = 1 AND [load_date] = '${startDate}' AND CONVERT(varchar, [del_date], 1) + CASE WHEN [del_date] IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), [del_time], 100), '') END > { fn NOW() } - 4 ORDER BY [load_time] ASC;`;
+                }
+            }
+        }
+
+        //This complicated thing is so the query will show Saturday, Sunday, and Monday for tomorrow if startDate is on a Saturday. Try it out on a Friday.
+        //((DATEPART(WEEKDAY, '${startDate}') = 7 AND ((DAY(load_date) BETWEEN DAY('${startDate}') AND DAY(DATEADD(DAY, 2, '${startDate}')) AND MONTH(load_date) = MONTH('${startDate}')) OR (DAY(load_date) = DAY(DATEADD(DAY, -1, '${startDate}')) AND MONTH(load_date) = MONTH(DATEADD(DAY, 1, '${startDate}'))))) OR (DATEPART(WEEKDAY, '${startDate}') <> 7 AND (DAY(load_date) = DAY('${startDate}') AND MONTH(load_date) = MONTH('${startDate}'))))
+
         const result = await databaseQuery(query, localConfig);
 
         const responseData = {
@@ -526,10 +599,10 @@ app.post('/read-ext-viewer', async (req, res) => {
                 query += ` WHERE ((DATEPART(WEEKDAY, '${startDate}') = 7 AND '${startDate}' BETWEEN CONVERT(DATE, Load1) AND DATEADD(DAY, 2, CONVERT(DATE, Load2))) OR ('${startDate}' BETWEEN CONVERT(DATE, Load1) AND CONVERT(DATE, Load2)))`;
                 
                 if(how === "inbnd"){
-                    query += " AND [cmp_name] IN ('COASTAL ENERGY WILLOW RAIL', 'PLAINS ENERGY SERVICES') AND [cty_nmstct] = 'WILLOW SPRINGS,MO/'";
+                    query += " AND [cmp_name] IN ('COASTAL ENERGY WILLOW RAIL', 'PLAINS ENERGY SERVICES', 'PLAINS ENERGY WILLOW SPRINGS')";
                 }
                 else if(how === "outbnd"){
-                    query += " AND [PickupName] IN ('COASTAL ENERGY WILLOW RAIL', 'PLAINS ENERGY SERVICES') AND [PickupCity] = 'WILLOW SPRINGS,MO/'";
+                    query += " AND [PickupName] IN ('COASTAL ENERGY WILLOW RAIL', 'PLAINS ENERGY SERVICES', 'PLAINS ENERGY WILLOW SPRINGS')";
                 }
     
                 query += " AND (([RevType2] = 'ASPH') AND ([PickupId] = 'COAWIL' OR [PickupId] = 'PLAPOT' OR [cmp_id] = 'COAWIL' OR [cmp_id] = 'PLAPOT') AND  CONVERT(VARCHAR(10),[stp_schdtlatest],1) > { fn NOW() } - 4) ORDER BY loadTime ASC;";
@@ -537,94 +610,70 @@ app.post('/read-ext-viewer', async (req, res) => {
             else if(when === "today"){
                 query += ` WHERE '${startDate}' BETWEEN CONVERT(DATE, Load1) AND CONVERT(DATE, Load2)`;
                 if(how === "inbnd"){
-                    query += " AND [cmp_name] IN ('COASTAL ENERGY WILLOW RAIL', 'PLAINS ENERGY SERVICES') AND [cty_nmstct] = 'WILLOW SPRINGS,MO/'";
+                    query += " AND [cmp_name] IN ('COASTAL ENERGY WILLOW RAIL', 'PLAINS ENERGY SERVICES', 'PLAINS ENERGY WILLOW SPRINGS')";
                 }
                 else if(how === "outbnd"){
-                    query += " AND [PickupName] IN ('COASTAL ENERGY WILLOW RAIL', 'PLAINS ENERGY SERVICES') AND [PickupCity] = 'WILLOW SPRINGS,MO/'";
+                    query += " AND [PickupName] IN ('COASTAL ENERGY WILLOW RAIL', 'PLAINS ENERGY SERVICES', 'PLAINS ENERGY WILLOW SPRINGS')";
                 }
     
                 query += " AND (([RevType2] = 'ASPH') AND ([PickupId] = 'COAWIL' OR [PickupId] = 'PLAPOT' OR [cmp_id] = 'COAWIL' OR [cmp_id] = 'PLAPOT') AND  CONVERT(VARCHAR(10),[stp_schdtlatest],1) > { fn NOW() } - 4) ORDER BY loadTime ASC;";
             }
         }
         else if(who === 'Miller'){
-            query = "SELECT [RevType2], IIF([Carrier] = 'UNKNOWN',IIF([Driver1Name] <>'UNKNOWN','FMCT','UNK'),[Carrier]) AS [Carrier], [ord_hdrnumber], [DispStatus], [MLR_Inbnd], [cmd_name], IIF([fgt_ordered_count]<>0, CONVERT(VARCHAR(10),[fgt_ordered_count]) + ' ' + CONVERT(VARCHAR(5),[fgt_countunit]), IIF([fgt_ordered_weight]<>0, CONVERT(VARCHAR(10),[fgt_ordered_weight]) + ' ' + CONVERT(VARCHAR(5),[fgt_weightunit]),IIF([fgt_ordered_volume]<>0,CONVERT(VARCHAR(10),[fgt_ordered_volume]) + ' ' + CONVERT(VARCHAR(5),[Unit]),'1 LOAD'))) AS [Qty], [PickupId], [PickupName], [PickupCity], [cmp_id], [cmp_name], [cty_nmstct], IIF([Driver1Name] = 'UNKNOWN','UNK',[Driver1Name]) AS [Driver1], IIF([Tractor] = 'UNKNOWN','UNK',[Tractor]) AS [Tractor], IIF([Trailer1] = 'UNKNOWN','UNK',[Trailer1]) AS [Trailer1], [BookedBy], [PONum], [DestPO], [RevType4], [ord_remark], IIF(CONVERT(VARCHAR(10),[Load1],1)='01/01/50','OPEN',IIF([Load1]=[Load2],convert(varchar(10),[Load1], 1) + right(convert(varchar(32),[Load1],100),8),convert(varchar(10),[Load1], 1) + right(convert(varchar(32),[Load1],100),8) + ' - ' + convert(varchar(10),[Load2], 1) + right(convert(varchar(32),[Load2],100),8))) AS [LoadRange], IIF(CONVERT(VARCHAR(10),[stp_schdtearliest],1)='01/01/50','OPEN',IIF([stp_schdtearliest]=[stp_schdtlatest],convert(varchar(10),[stp_schdtearliest], 1) + right(convert(varchar(32),[stp_schdtearliest],100),8),convert(varchar(10),[stp_schdtearliest], 1) + right(convert(varchar(32),[stp_schdtearliest],100),8) + ' - ' + convert(varchar(10),[stp_schdtlatest], 1) + right(convert(varchar(32),[stp_schdtlatest],100),8))) AS [DelRange] FROM [RouteSheetViewMiller] WHERE (([RevType2] = @RevType2) AND [MLR_Inbnd] = 'N' AND ([PickupId] = 'COAMIL' OR [PickupId] = 'PLAMIL' OR [cmp_id] = 'COAMIL' OR [cmp_id] = 'PLAMIL') AND CONVERT(VARCHAR(10),[stp_schdtearliest],1) > { fn NOW() } - 4);";
+            query = "SELECT [ord_hdrnumber] AS [ID], NULL AS [lift_num], [DispStatus] AS [status], IIF([adtv_type] <> '', [cmd_name] + ' W/' + [adtv_pct] + ' ' + [adtv_type], [cmd_name]) AS [product], IIF(([fgt_ordered_weight] = '1' AND [fgt_weightunit] = 'LBS') OR ([fgt_ordered_count] <> 0 AND CONVERT(VARCHAR(10), [fgt_ordered_count]) + ' ' + [fgt_countunit] = '1 LBS') OR ([fgt_ordered_count] = 0 AND [fgt_ordered_weight] = 0 AND [fgt_ordered_volume] = 0), 'FULL', IIF([fgt_ordered_count] <> 0, CONVERT(VARCHAR(10), [fgt_ordered_count]) + ' ' + [fgt_countunit], IIF([fgt_ordered_weight] <> 0, CONVERT(VARCHAR(10), [fgt_ordered_weight]) + ' ' + [fgt_weightunit], IIF([fgt_ordered_volume] <> 0, CONVERT(VARCHAR(10), [fgt_ordered_volume]) + ' ' + [Unit], '1 LOAD')))) AS [quantity], [PickupName] AS [originCompany], REPLACE([PickupCity], '/', '') AS [origin], [cmp_name] AS [cust_name], REPLACE([cty_nmstct], '/', '') AS [destinationCity], IIF(CONVERT(VARCHAR(10), [Load1], 1) = '01/01/50', 'OPEN', IIF([Load1] = [Load2], RIGHT(CONVERT(VARCHAR(30), [Load1], 100), 7), RIGHT(CONVERT(VARCHAR(30), [Load1], 100), 7) + ' - ' + RIGHT(CONVERT(VARCHAR(30), [Load2], 100), 7))) AS [loadTime], IIF(CONVERT(VARCHAR(10), [stp_schdtearliest], 1) = '01/01/50', 'OPEN', IIF([stp_schdtearliest] = [stp_schdtlatest], convert(varchar(10), [stp_schdtearliest], 1) + right(convert(varchar(32), [stp_schdtearliest], 100), 8), convert(varchar(10), [stp_schdtearliest], 1) + right(convert(varchar(32), [stp_schdtearliest], 100), 8) + ' - ' + convert(varchar(10), [stp_schdtlatest], 1) + right(convert(varchar(32), [stp_schdtlatest], 100), 8))) AS [delTime], IIF([Carrier] = 'UNKNOWN', IIF([Driver1Name] <> 'UNKNOWN', 'FMCT', 'UNK'), [Carrier]) AS [carrier], [billTo] AS [bill_to], IIF([Driver1Name] = 'UNKNOWN','UNK',[Driver1Name]) AS [driver], IIF([Tractor] = 'UNKNOWN','UNK',[Tractor]) AS [truck], IIF([Trailer1] = 'UNKNOWN','UNK',[Trailer1]) AS [trailer], [PONum] AS [poNum], [DestPO] AS [destPONum], [RevType4] AS [pump], [ord_remark] AS [remarks] FROM [RouteSheetViewMiller]";
+
+            //This is the full query that the old one uses for outbound
+            //query = "SELECT [RevType2], IIF([Carrier] = 'UNKNOWN',IIF([Driver1Name] <>'UNKNOWN','FMCT','UNK'),[Carrier]) AS [Carrier], [ord_hdrnumber], [DispStatus], [MLR_Inbnd], [cmd_name], IIF([fgt_ordered_count]<>0, CONVERT(VARCHAR(10),[fgt_ordered_count]) + ' ' + CONVERT(VARCHAR(5),[fgt_countunit]), IIF([fgt_ordered_weight]<>0, CONVERT(VARCHAR(10),[fgt_ordered_weight]) + ' ' + CONVERT(VARCHAR(5),[fgt_weightunit]),IIF([fgt_ordered_volume]<>0,CONVERT(VARCHAR(10),[fgt_ordered_volume]) + ' ' + CONVERT(VARCHAR(5),[Unit]),'1 LOAD'))) AS [Qty], [PickupId], [PickupName], [PickupCity], [cmp_id], [cmp_name], [cty_nmstct], IIF([Driver1Name] = 'UNKNOWN','UNK',[Driver1Name]) AS [Driver1], IIF([Tractor] = 'UNKNOWN','UNK',[Tractor]) AS [Tractor], IIF([Trailer1] = 'UNKNOWN','UNK',[Trailer1]) AS [Trailer1], [BookedBy], [PONum], [DestPO], [RevType4], [ord_remark], IIF(CONVERT(VARCHAR(10),[Load1],1)='01/01/50','OPEN',IIF([Load1]=[Load2],convert(varchar(10),[Load1], 1) + right(convert(varchar(32),[Load1],100),8),convert(varchar(10),[Load1], 1) + right(convert(varchar(32),[Load1],100),8) + ' - ' + convert(varchar(10),[Load2], 1) + right(convert(varchar(32),[Load2],100),8))) AS [LoadRange], IIF(CONVERT(VARCHAR(10),[stp_schdtearliest],1)='01/01/50','OPEN',IIF([stp_schdtearliest]=[stp_schdtlatest],convert(varchar(10),[stp_schdtearliest], 1) + right(convert(varchar(32),[stp_schdtearliest],100),8),convert(varchar(10),[stp_schdtearliest], 1) + right(convert(varchar(32),[stp_schdtearliest],100),8) + ' - ' + convert(varchar(10),[stp_schdtlatest], 1) + right(convert(varchar(32),[stp_schdtlatest],100),8))) AS [DelRange] FROM [RouteSheetViewMiller] WHERE (([RevType2] = 'ASPH') AND [MLR_Inbnd] = 'N' AND ([PickupId] = 'COAMIL' OR [PickupId] = 'PLAMIL' OR [cmp_id] = 'COAMIL' OR [cmp_id] = 'PLAMIL') AND CONVERT(VARCHAR(10),[stp_schdtearliest],1) > { fn NOW() } - 4)";
 
             if(when === "tomorrow"){
                 query += ` WHERE ((DATEPART(WEEKDAY, '${startDate}') = 7 AND '${startDate}' BETWEEN CONVERT(DATE, Load1) AND DATEADD(DAY, 2, CONVERT(DATE, Load2))) OR ('${startDate}' BETWEEN CONVERT(DATE, Load1) AND CONVERT(DATE, Load2)))`;
                 
                 if(how === "inbnd"){
-                    query += " AND [WS_Inbnd] = 'Y'";
+                    query += " AND [cmp_name] IN ('COASTAL ENERGY CORPORATION - M', 'PLAINS ENERGY MILLER', 'COASTAL ENERGY - MILLER')";
                 }
                 else if(how === "outbnd"){
-                    query += " AND [WS_Inbnd] = 'N'";
+                    query += " AND [PickupName] IN ('COASTAL ENERGY - MILLER', 'PLAINS ENERGY MILLER')";
                 }
     
-                query += " AND ([RevType2] = 'ASPH') AND CONVERT(varchar(10), [stp_schdtlatest], 1) > { fn NOW() } - 4 ORDER BY loadTime ASC;";
+                query += " AND (([RevType2] = 'ASPH') AND ([PickupId] = 'COAMIL' OR [PickupId] = 'PLAMIL' OR [cmp_id] = 'COAMIL' OR [cmp_id] = 'PLAMIL') AND CONVERT(VARCHAR(10),[stp_schdtearliest],1) > { fn NOW() } - 4) ORDER BY loadTime ASC;";
             }
             else if(when === "today"){
                 query += ` WHERE '${startDate}' BETWEEN CONVERT(DATE, Load1) AND CONVERT(DATE, Load2)`;
                 if(how === "inbnd"){
-                    query += " AND [WS_Inbnd] = 'Y'";
+                    query += " AND [cmp_name] IN ('COASTAL ENERGY CORPORATION - M', 'PLAINS ENERGY MILLER', 'COASTAL ENERGY - MILLER')";
                 }
                 else if(how === "outbnd"){
-                    query += " AND [WS_Inbnd] = 'N'";
+                    query += " AND [PickupName] IN ('COASTAL ENERGY - MILLER', 'PLAINS ENERGY MILLER')";
                 }
     
-                query += " AND ([RevType2] = 'ASPH') AND CONVERT(varchar(10), [stp_schdtlatest], 1) > { fn NOW() } - 4 ORDER BY loadTime ASC;";
+                query += " AND (([RevType2] = 'ASPH') AND ([PickupId] = 'COAMIL' OR [PickupId] = 'PLAMIL' OR [cmp_id] = 'COAMIL' OR [cmp_id] = 'PLAMIL') AND CONVERT(VARCHAR(10),[stp_schdtearliest],1) > { fn NOW() } - 4) ORDER BY loadTime ASC;";
             }
         }
         else if(who === 'Clinton'){
-            query = "SELECT [RevType2], IIF([Carrier] = 'UNKNOWN',IIF([Driver1Name] <>'UNKNOWN','FMCT','UNK'),[Carrier]) AS [Carrier], [ord_hdrnumber], [DispStatus], [cmd_name], IIF([fgt_ordered_count]<>0, CONVERT(VARCHAR(10),[fgt_ordered_count]) + ' ' + CONVERT(VARCHAR(5),[fgt_countunit]), IIF([fgt_ordered_weight]<>0, CONVERT(VARCHAR(10),[fgt_ordered_weight]) + ' ' + CONVERT(VARCHAR(5),[fgt_weightunit]),IIF([fgt_ordered_volume]<>0,CONVERT(VARCHAR(10),[fgt_ordered_volume]) + ' ' + CONVERT(VARCHAR(5),[Unit]),'1 LOAD'))) AS [Qty], [PickupId], [PickupName], [PickupCity], [cmp_id], [cmp_name], [cty_nmstct], IIF([Driver1Name] = 'UNKNOWN','UNK',[Driver1Name]) AS [Driver1], IIF([Tractor] = 'UNKNOWN','UNK',[Tractor]) AS [Tractor], IIF([Trailer1] = 'UNKNOWN','UNK',[Trailer1]) AS [Trailer1], [BookedBy], [PONum], [DestPO], [RevType4], [ord_remark], IIF(CONVERT(VARCHAR(10),[Load1],1)='01/01/50','OPEN',IIF([Load1]=[Load2],convert(varchar(10),[Load1], 1) + right(convert(varchar(32),[Load1],100),8),convert(varchar(10),[Load1], 1) + right(convert(varchar(32),[Load1],100),8) + ' - ' + convert(varchar(10),[Load2], 1) + right(convert(varchar(32),[Load2],100),8))) AS [LoadRange], IIF(CONVERT(VARCHAR(10),[stp_schdtearliest],1)='01/01/50','OPEN',IIF([stp_schdtearliest]=[stp_schdtlatest],convert(varchar(10),[stp_schdtearliest], 1) + right(convert(varchar(32),[stp_schdtearliest],100),8),convert(varchar(10),[stp_schdtearliest], 1) + right(convert(varchar(32),[stp_schdtearliest],100),8) + ' - ' + convert(varchar(10),[stp_schdtlatest], 1) + right(convert(varchar(32),[stp_schdtlatest],100),8))) AS [DelRange] FROM [RouteSheetViewClinton] WHERE (([RevType2] = @RevType2) AND [CLI_Inbnd] = 'N'  AND ([PickupId] = @PickupID OR [cmp_id] = @cmp_id) AND CONVERT(VARCHAR(10),[stp_schdtlatest],1) > { fn NOW() } - 4);";
+            query = "SELECT [ord_hdrnumber] AS [ID], NULL AS [lift_num], [DispStatus] AS [status], [cmd_name] AS [product], IIF(([fgt_ordered_weight] = '1' AND [fgt_weightunit] = 'LBS') OR ([fgt_ordered_count] <> 0 AND CONVERT(VARCHAR(10), [fgt_ordered_count]) + ' ' + [fgt_countunit] = '1 LBS') OR ([fgt_ordered_count] = 0 AND [fgt_ordered_weight] = 0 AND [fgt_ordered_volume] = 0), 'FULL', IIF([fgt_ordered_count] <> 0, CONVERT(VARCHAR(10), [fgt_ordered_count]) + ' ' + [fgt_countunit], IIF([fgt_ordered_weight] <> 0, CONVERT(VARCHAR(10), [fgt_ordered_weight]) + ' ' + [fgt_weightunit], IIF([fgt_ordered_volume] <> 0, CONVERT(VARCHAR(10), [fgt_ordered_volume]) + ' ' + [Unit], '1 LOAD')))) AS [quantity], [PickupName] AS [originCompany], REPLACE([PickupCity], '/', '') AS [origin], [cmp_name] AS [cust_name], REPLACE([cty_nmstct], '/', '') AS [destinationCity], IIF(CONVERT(VARCHAR(10), [Load1], 1) = '01/01/50', 'OPEN', IIF([Load1] = [Load2], RIGHT(CONVERT(VARCHAR(30), [Load1], 100), 7), RIGHT(CONVERT(VARCHAR(30), [Load1], 100), 7) + ' - ' + RIGHT(CONVERT(VARCHAR(30), [Load2], 100), 7))) AS [loadTime], IIF(CONVERT(VARCHAR(10), [stp_schdtearliest], 1) = '01/01/50', 'OPEN', IIF([stp_schdtearliest] = [stp_schdtlatest], convert(varchar(10), [stp_schdtearliest], 1) + right(convert(varchar(32), [stp_schdtearliest], 100), 8), convert(varchar(10), [stp_schdtearliest], 1) + right(convert(varchar(32), [stp_schdtearliest], 100), 8) + ' - ' + convert(varchar(10), [stp_schdtlatest], 1) + right(convert(varchar(32), [stp_schdtlatest], 100), 8))) AS [delTime], IIF([Carrier] = 'UNKNOWN', IIF([Driver1Name] <> 'UNKNOWN', 'FMCT', 'UNK'), [Carrier]) AS [carrier], [billTo] AS [bill_to], IIF([Driver1Name] = 'UNKNOWN','UNK',[Driver1Name]) AS [driver], IIF([Tractor] = 'UNKNOWN','UNK',[Tractor]) AS [truck], IIF([Trailer1] = 'UNKNOWN','UNK',[Trailer1]) AS [trailer], [PONum] AS [poNum], [DestPO] AS [destPONum], [RevType4] AS [pump], [ord_remark] AS [remarks] FROM [RouteSheetViewClinton]";
 
             if(when === "tomorrow"){
                 query += ` WHERE ((DATEPART(WEEKDAY, '${startDate}') = 7 AND '${startDate}' BETWEEN CONVERT(DATE, Load1) AND DATEADD(DAY, 2, CONVERT(DATE, Load2))) OR ('${startDate}' BETWEEN CONVERT(DATE, Load1) AND CONVERT(DATE, Load2)))`;
                 
                 if(how === "inbnd"){
-                    query += " AND [WS_Inbnd] = 'Y'";
+                    query += " AND [cmp_name] IN ('COASTAL ENERGY CORPORATION - C', 'PLAINS ENERGY CLINTON', 'COASTAL ENERGY - CLINTON')";
                 }
                 else if(how === "outbnd"){
-                    query += " AND [WS_Inbnd] = 'N'";
+                    query += " AND [PickupName] IN ('COASTAL ENERGY - CLINTON', 'PLAINS ENERGY CLINTON')";
                 }
     
-                query += " AND ([RevType2] = 'ASPH') AND CONVERT(varchar(10), [stp_schdtlatest], 1) > { fn NOW() } - 4 ORDER BY loadTime ASC;";
+                query += " AND (([RevType2] = 'ASPH') AND ([PickupId] = 'COACLI' OR [cmp_id] = 'COACLI') AND CONVERT(VARCHAR(10),[stp_schdtearliest],1) > { fn NOW() } - 4) ORDER BY loadTime ASC;";
             }
             else if(when === "today"){
                 query += ` WHERE '${startDate}' BETWEEN CONVERT(DATE, Load1) AND CONVERT(DATE, Load2)`;
                 if(how === "inbnd"){
-                    query += " AND [WS_Inbnd] = 'Y'";
+                    query += " AND [cmp_name] IN ('COASTAL ENERGY CORPORATION - C', 'PLAINS ENERGY CLINTON', 'COASTAL ENERGY - CLINTON')";
                 }
                 else if(how === "outbnd"){
-                    query += " AND [WS_Inbnd] = 'N'";
+                    query += " AND [PickupName] IN ('COASTAL ENERGY - CLINTON', 'PLAINS ENERGY CLINTON')";
                 }
     
-                query += " AND ([RevType2] = 'ASPH') AND CONVERT(varchar(10), [stp_schdtlatest], 1) > { fn NOW() } - 4 ORDER BY loadTime ASC;";
-            }
-        }
-        else{
-            query = "SELECT [ord_hdrnumber] AS [ID], NULL AS [lift_num], [DispStatus] AS [status], [cmd_name] AS [product], IIF(([fgt_ordered_weight] = '1' AND [fgt_weightunit] = 'LBS') OR ([fgt_ordered_count] <> 0 AND CONVERT(VARCHAR(10), [fgt_ordered_count]) + ' ' + [fgt_countunit] = '1 LBS') OR ([fgt_ordered_count] = 0 AND [fgt_ordered_weight] = 0 AND [fgt_ordered_volume] = 0), 'FULL', IIF([fgt_ordered_count] <> 0, CONVERT(VARCHAR(10), [fgt_ordered_count]) + ' ' + [fgt_countunit], IIF([fgt_ordered_weight] <> 0, CONVERT(VARCHAR(10), [fgt_ordered_weight]) + ' ' + [fgt_weightunit], IIF([fgt_ordered_volume] <> 0, CONVERT(VARCHAR(10), [fgt_ordered_volume]) + ' ' + [Unit], '1 LOAD')))) AS [quantity], [PickupName] AS [originCompany], REPLACE([PickupCity], '/', '') AS [origin], [cmp_name] AS [cust_name], REPLACE([cty_nmstct], '/', '') AS [destinationCity], IIF(CONVERT(VARCHAR(10), [Load1], 1) = '01/01/50', 'OPEN', IIF([Load1] = [Load2], RIGHT(CONVERT(VARCHAR(30), [Load1], 100), 7), RIGHT(CONVERT(VARCHAR(30), [Load1], 100), 7) + ' - ' + RIGHT(CONVERT(VARCHAR(30), [Load2], 100), 7))) AS [loadTime], IIF(CONVERT(VARCHAR(10), [stp_schdtearliest], 1) = '01/01/50', 'OPEN', IIF([stp_schdtearliest] = [stp_schdtlatest], convert(varchar(10), [stp_schdtearliest], 1) + right(convert(varchar(32), [stp_schdtearliest], 100), 8), convert(varchar(10), [stp_schdtearliest], 1) + right(convert(varchar(32), [stp_schdtearliest], 100), 8) + ' - ' + convert(varchar(10), [stp_schdtlatest], 1) + right(convert(varchar(32), [stp_schdtlatest], 100), 8))) AS [delTime], IIF([Carrier] = 'UNKNOWN',IIF([Driver1Name] <>'UNKNOWN','FMCT','UNK'),[Carrier]) AS [carrier], [billTo] AS [bill_to], IIF([Driver1Name] = 'UNKNOWN','UNK',[Driver1Name]) AS [driver], IIF([Tractor] = 'UNKNOWN','UNK',[Tractor]) AS [truck], IIF([Trailer1] = 'UNKNOWN','UNK',[Trailer1]) AS [trailer], [PONum] AS [poNum], [DestPO] AS [destPONum], [RevType4] AS [pump], [ord_remark] AS [remarks] FROM [TMW_Live].[dbo].[RouteSheetView]";
-
-            if(when === "tomorrow"){
-                query += ` WHERE ((DATEPART(WEEKDAY, '${startDate}') = 7 AND '${startDate}' BETWEEN CONVERT(DATE, Load1) AND DATEADD(DAY, 2, CONVERT(DATE, Load2))) OR ('${startDate}' BETWEEN CONVERT(DATE, Load1) AND CONVERT(DATE, Load2)))`;
-                
-                if(how === "inbnd"){
-                    query += " AND [WS_Inbnd] = 'Y'";
-                }
-                else if(how === "outbnd"){
-                    query += " AND [WS_Inbnd] = 'N'";
-                }
-    
-                query += " AND ([RevType2] = 'ASPH') AND CONVERT(varchar(10), [stp_schdtlatest], 1) > { fn NOW() } - 4 ORDER BY loadTime ASC;";
-            }
-            else if(when === "today"){
-                query += ` WHERE '${startDate}' BETWEEN CONVERT(DATE, Load1) AND CONVERT(DATE, Load2)`;
-                if(how === "inbnd"){
-                    query += " AND [WS_Inbnd] = 'Y'";
-                }
-                else if(how === "outbnd"){
-                    query += " AND [WS_Inbnd] = 'N'";
-                }
-    
-                query += " AND ([RevType2] = 'ASPH') AND CONVERT(varchar(10), [stp_schdtlatest], 1) > { fn NOW() } - 4 ORDER BY loadTime ASC;";
+                query += " AND (([RevType2] = 'ASPH') AND ([PickupId] = 'COACLI' OR [cmp_id] = 'COACLI') AND CONVERT(VARCHAR(10),[stp_schdtearliest],1) > { fn NOW() } - 4) ORDER BY loadTime ASC;";
             }
         }
         
@@ -644,7 +693,6 @@ app.post('/read-ext-viewer', async (req, res) => {
 app.post('/update-display-status', async(req,res) => {
     try{
         const id = req.body;
-        console.log(id);
 
         let query = `UPDATE [External_load_scheduling].[dbo].[Main] SET [display] = 0, [completed_by] = '${id.initials}' WHERE [ID] = ${id.number};`;
 

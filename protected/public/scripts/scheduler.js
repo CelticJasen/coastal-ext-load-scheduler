@@ -86,7 +86,9 @@ function roundTimeToHalfHour(input) {
         input.value = `${roundedHours}:00`;
     }
 }
-    
+
+// ------------------------------------ OUTBOUND -------------------------------------------------------
+
 document.getElementById('submit_button').addEventListener('click', async (event) => {
     event.preventDefault();
 
@@ -135,6 +137,7 @@ document.getElementById('submit_button').addEventListener('click', async (event)
             const prodNames = uniqueData(data.map((row) => row.ProdName));
             const tpNames = uniqueData(data.map((row) => row.TpName));
             const destCities = uniqueData(data.map((row) => row.DestCity));
+            //const originCompanies = ['CALUMET SHREVEPORT FUELS,LLC.', 'COFFEYVILLE RESOURCES LLC', 'DISCOVERY OIL/USED OIL SERVICE', 'ERGON A&E CATOOSA', 'ERGON', 'EXXON MOBILE (JOLIET)', 'HOLLY FRONTIER', 'HOLLY REFINING AND MARKETING', 'HOLLY REFINING AND MKTG', 'INGEVITY DERIDDER PLANT 1', 'KTN'];
             const destStates = uniqueData(data.map((row) => row.DestState));
             const carNames = uniqueData(data.map((row) => row.CarName1));
             const billNames = ['CECHIRE', 'CUSTPU']
@@ -223,6 +226,7 @@ document.getElementById('submit_button').addEventListener('click', async (event)
             sched_form.appendChild(createFormDiv('trailerDiv', 'Trailer #:'));
             sched_form.appendChild(createFormDiv('originDiv', '<span>*</span>Origin:', tpNames));
             sched_form.appendChild(createFormDiv('cityDiv', '<span>*</span>Destination City:', destCities));
+            //sched_form.appendChild(createFormDiv('cityDiv', '<span>*</span>Origin Company:', originCompanies));
             sched_form.appendChild(createFormDiv('stateDiv', '<span>*</span>Destination State:', destStates));
             sched_form.appendChild(createFormDiv('countyDiv', 'Destination County:', uniqueData(countyInput)));
             sched_form.appendChild(createFormDiv('carDiv', '<span>*</span>Carrier:', carNames));
@@ -351,6 +355,8 @@ document.getElementById('submit_button').addEventListener('click', async (event)
                 }
 
                 const username = localStorage.getItem('username');
+                
+                const originCompanyInput = null;
 
                 const payload = {
                     liftNumber,
@@ -363,6 +369,7 @@ document.getElementById('submit_button').addEventListener('click', async (event)
                     quantityInput,
                     originInput,
                     destCityInput,
+                    originCompanyInput,
                     destStateInput,
                     carInput,
                     custInput,
@@ -402,6 +409,8 @@ document.getElementById('submit_button').addEventListener('click', async (event)
     }
 });
 
+// ------------------------------------ INBOUND -------------------------------------------------------
+
 document.getElementById('submit_inbound_button').addEventListener('click', async (event) => {
     event.preventDefault();
     
@@ -421,6 +430,7 @@ document.getElementById('submit_inbound_button').addEventListener('click', async
     const destStates = ['OK', 'MO', 'TX', 'KS', 'MD'];
     const carNames = ['AMERICAN PAVING FABRICS INC', 'ARNCO PETROLEUM TRANSPORTATION', 'CAPITAL HAULING', 'COUCH EXCAVATING CO', 'GHIGAU TRUCKING', 'GROENDYKE TRANSPORT', 'HALL HAULING', 'JAG TRUCKING', 'MILLER TRUCK LINES', 'MUNDS ENERGY', 'PETRO LOGISTICS LLC', 'PTI', 'RL MOORE LLC', 'ROLLER TRANSPORT', 'YT & E'];
     const billNames = ['CECHIRE', 'CUSTPU'];
+    const originCompanies = ['CALUMET SHREVEPORT FUELS,LLC.', 'COFFEYVILLE RESOURCES LLC', 'DISCOVERY OIL/USED OIL SERVICE', 'ERGON A&E CATOOSA', 'ERGON', 'EXXON MOBILE (JOLIET)', 'HOLLY FRONTIER', 'HOLLY REFINING AND MARKETING', 'HOLLY REFINING AND MKTG', 'INGEVITY DERIDDER PLANT 1', 'KTN'];
 
     // creates input elements for the generated form
     const final_submit = document.createElement('INPUT');
@@ -509,6 +519,7 @@ document.getElementById('submit_inbound_button').addEventListener('click', async
     sched_form.appendChild(createFormDiv('trailerDiv', 'Trailer #:'));
     sched_form.appendChild(createFormDiv('originDiv', '<span>*</span>Origin:', tpNames));
     sched_form.appendChild(createFormDiv('cityDiv', '<span>*</span>Destination City:'));
+    sched_form.appendChild(createFormDiv('originCompanyDiv', '<span>*</span>Origin Company:', originCompanies));
     sched_form.appendChild(createFormDiv('stateDiv', '<span>*</span>Destination State:', destStates));
     sched_form.appendChild(createFormDiv('countyDiv', 'Destination County:', uniqueData(countyInput)));
     sched_form.appendChild(createFormDiv('carDiv', '<span>*</span>Carrier:', carNames));
@@ -532,6 +543,7 @@ document.getElementById('submit_inbound_button').addEventListener('click', async
         'trailerInput',
         'originInput',
         'destCityInput',
+        'originCompanyInput',
         'destStateInput',
         'countyInput',
         'carInput',
@@ -592,6 +604,7 @@ document.getElementById('submit_inbound_button').addEventListener('click', async
         const trailerInput = document.getElementById('trailerInput').value;
         const originInput = document.getElementById('originInput').value;
         const destCityInput = document.getElementById('destCityInput').value;
+        const originCompanyInput = document.getElementById('originCompanyInput').value;
         const destStateInput = document.getElementById('destStateInput').value;
         const carInput = document.getElementById('carInput').value;
         const billToInput = document.getElementById('billToInput').value;
@@ -601,7 +614,7 @@ document.getElementById('submit_inbound_button').addEventListener('click', async
         responseText.setAttribute('id', 'responseText');
 
         // Check if any required field is empty
-        if([productInput, quantityInput, originInput, destCityInput, destStateInput, carInput, billToInput, custInput].includes('Select an option') || [loadDateInput, delDateInput, productInput, quantityInput, originInput, destCityInput, destStateInput, carInput, billToInput, custInput].includes('') || quantityInput.includes('Select a label')){
+        if([productInput, quantityInput, originInput, destCityInput, destStateInput, carInput, billToInput, custInput].includes('Select an option') || [loadDateInput, delDateInput, productInput, quantityInput, originInput, destCityInput, originCompanyInput, destStateInput, carInput, billToInput, custInput].includes('') || quantityInput.includes('Select a label')){
             responseText.innerHTML = '<span>Please populate all required fields</span>';
             resultContainer.appendChild(responseText);
             throw new Error('Failed to enter data in required field(s).');
@@ -643,6 +656,7 @@ document.getElementById('submit_inbound_button').addEventListener('click', async
             quantityInput,
             originInput,
             destCityInput,
+            originCompanyInput,
             destStateInput,
             carInput,
             custInput,
@@ -650,6 +664,8 @@ document.getElementById('submit_inbound_button').addEventListener('click', async
             trailerInput,
             username,
         };
+
+        console.log(payload);
         
         // Input information to our database
         try {
