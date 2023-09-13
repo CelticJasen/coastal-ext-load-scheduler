@@ -36,7 +36,7 @@ function createTable() {
 
     var headerRow = document.createElement("tr");
     var headers = [
-        "ID", "Lift #", "Load Date","Load Time", "Delivery Date", "Delivery Time", "Product", "Qty", "Origin", "Customer Name", "Carrier","Bill To", "Dest. City", "Dest. State", "Timestamp"
+        "ID", "Lift #", "Load Date","Load Time", "Delivery Date", "Delivery Time", "Product", "Qty", "Origin Company", "Origin", "Customer Name", "Carrier","Bill To", "Dest. City", "Dest. State", "Timestamp"
     ];
 
     const tableDiv = document.createElement('div');

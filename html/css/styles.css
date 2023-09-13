@@ -389,12 +389,12 @@ input[type="submit"] {
     margin-bottom: 2%;
 }
 #tableDiv input{
-    font-size: 0.7vw;
-    width: 5.3vw;
+    font-size: 0.5vw;
+    width: 4vw;
 }
 
 .quantityEditType{
-    font-size: 0.6vw;
+    font-size: 0.5vw;
 }
 
 .quantityEdit{
@@ -402,11 +402,11 @@ input[type="submit"] {
 }
 
 .billToEdit{
-    font-size: 0.6vw !important;
+    font-size: 0.5vw !important;
 }
 
 .productEdit{
-    font-size: 0.6vw !important;
+    font-size: 0.5vw !important;
 }
 
 #dynamicTable {
@@ -419,10 +419,12 @@ input[type="submit"] {
 
 #dynamicTable th,
 #dynamicTable td {
-    font-size: .75vw;
+    color: black;
+    border-bottom: 2px solid black;
     border: 1px solid #ddd;
     padding: 8px;
     white-space: nowrap;
+    font-size: 68%;
 }
 
 #dynamicTable th {
@@ -433,13 +435,6 @@ input[type="submit"] {
 #dynamicTable tr:nth-child(even) {
     background-color: #bebebe;
 }
-
-#dynamicTable th,
-#dynamicTable td {
-    color: black;
-    border-bottom: 2px solid black;
-}
-
 
 #buttonDiv {
     width: 100%;

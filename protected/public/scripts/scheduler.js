@@ -9,7 +9,10 @@ function createFormDiv(id, labelText, uniqueDataArray) {
     label.innerHTML = labelText;
     formDiv.appendChild(label);
 
-    if (uniqueDataArray) {
+    if(uniqueDataArray && id === 'trailerDiv'){
+        addDataList(uniqueDataArray, formDiv);
+    }
+    else if (uniqueDataArray) {
         addDropdown(uniqueDataArray, formDiv);
     }
     else if(id !== 'loadDateTimeDiv' && id !== 'delDateTimeDiv' && id !== 'quantityDiv' && !uniqueDataArray){
@@ -48,6 +51,40 @@ function addDropdown(formData, div) {
         option.text = optionText;
         dropdown.add(option);
     });
+
+    div.appendChild(dropdown);
+}
+
+function addDataList(formData, div){
+    let data = formData.filter((elements) => {
+        return elements !== null;
+    });
+
+    const dropdown = document.createElement('datalist');
+    const input = document.createElement('input');
+    const placeholder = document.createElement('option');
+
+    input.setAttribute('list', 'trailerInput');
+    input.setAttribute('id', 'trailerInputData');
+
+    placeholder.text = 'Select an option';
+    placeholder.setAttribute('disabled', true);
+    placeholder.setAttribute('selected', true);
+    placeholder.setAttribute('hidden', true);
+    dropdown.setAttribute('class', 'formInput');
+    //dropdown.setAttribute('required', true);
+
+    if (data.length > 1) {
+        dropdown.appendChild(placeholder);
+    }
+
+    data.forEach((optionText) => {
+        let option = document.createElement('option');
+        option.value = optionText;
+        dropdown.appendChild(option);
+    });
+
+    div.appendChild(input);
 
     div.appendChild(dropdown);
 }
@@ -141,6 +178,7 @@ document.getElementById('submit_button').addEventListener('click', async (event)
             const carNames = uniqueData(data.map((row) => row.CarName1));
             const billNames = ['CECHIRE', 'CUSTPU']
             const custNames = uniqueData(data.map((row) => row.DestName));
+            const trailerNumbers = ['CUSTOMER PROVIDED', '820', '821'];
 
             // creates input elements for the generated form
             const final_submit = document.createElement('INPUT');
@@ -222,7 +260,7 @@ document.getElementById('submit_button').addEventListener('click', async (event)
             quantityDiv.appendChild(productQuantity);
             quantityDiv.appendChild(quantityLabel);
             sched_form.appendChild(quantityDiv);
-            sched_form.appendChild(createFormDiv('trailerDiv', 'Trailer #:'));
+            sched_form.appendChild(createFormDiv('trailerDiv', 'Trailer #:', trailerNumbers));
             sched_form.appendChild(createFormDiv('originDiv', '<span>*</span>Origin City:', tpNames));
             sched_form.appendChild(createFormDiv('cityDiv', '<span>*</span>Destination City:', destCities));
             sched_form.appendChild(createFormDiv('originCompanyDiv', '<span>*</span>Origin Company:', originCompanies));
@@ -343,7 +381,7 @@ document.getElementById('submit_button').addEventListener('click', async (event)
                 const productInput = document.getElementById('productInput').value;
                 const prodArray = prodNames;
                 const quantityInput = `${document.getElementById('quantityInput').value} ${document.getElementById('quantityLabel').value}`;
-                const trailerInput = document.getElementById('trailerInput').value;
+                const trailerInput = document.getElementById('trailerInputData').value;
                 const originInput = document.getElementById('originInput').value;
                 const destCityInput = document.getElementById('destCityInput').value;
                 const originCompanyInput = document.getElementById('originCompanyInput').value;
@@ -462,6 +500,7 @@ document.getElementById('submit_inbound_button').addEventListener('click', async
     let originCompanies;
     let prodNames;
     let destCompanies;
+    let trailerNumbers;
 
     try {
         const response = await fetch('/get-inbound-prefill-data', {
@@ -486,6 +525,7 @@ document.getElementById('submit_inbound_button').addEventListener('click', async
         originCompanies = data.map((row) => row.originCompanies.split('|'))[0];
         prodNames = data.map((row) => row.prodNames.split('|'))[0];
         destCompanies = ['COASTAL ENERGY - CLINTON','COASTAL ENERGY - MILLER','COASTAL ENERGY WILLOW RAIL','PLAINS ENERGY MILLER','PLAINS ENERGY WILLOW SPRINGS'];
+        trailerNumbers = ['CUSTOMER PROVIDED', '820', '810'];
     }
     catch(error){
         console.error('Uh oh!', error);
@@ -575,7 +615,7 @@ document.getElementById('submit_inbound_button').addEventListener('click', async
     quantityDiv.appendChild(productQuantity);
     quantityDiv.appendChild(quantityLabel);
     sched_form.appendChild(quantityDiv);
-    sched_form.appendChild(createFormDiv('trailerDiv', 'Trailer #:'));
+    sched_form.appendChild(createFormDiv('trailerDiv', 'Trailer #:', trailerNumbers));
     sched_form.appendChild(createFormDiv('originDiv', '<span>*</span>Origin City:', tpNames));
     sched_form.appendChild(createFormDiv('cityDiv', '<span>*</span>Destination City:'));
     sched_form.appendChild(createFormDiv('originCompanyDiv', '<span>*</span>Origin Company:', originCompanies));
@@ -754,7 +794,7 @@ document.getElementById('submit_inbound_button').addEventListener('click', async
         const productInput = document.getElementById('productInput').value;
         const prodArray = prodNames;
         const quantityInput = `${document.getElementById('quantityInput').value} ${document.getElementById('quantityLabel').value}`;
-        const trailerInput = document.getElementById('trailerInput').value;
+        const trailerInput = document.getElementById('trailerInputData').value;
         const originInput = document.getElementById('originInput').value;
         const destCityInput = document.getElementById('destCityInput').value;
         const originCompanyInput = document.getElementById('originCompanyInput').value;
