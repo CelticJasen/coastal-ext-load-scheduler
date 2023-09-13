@@ -341,6 +341,7 @@ document.getElementById('submit_button').addEventListener('click', async (event)
     const number = document.getElementById('unique_id').value;
     const date = document.getElementById('date_time_query').value;
     const delDate = document.getElementById('del_date_time_query').value;
+    const originCompany = document.getElementById('origin_company_query').value;
     let sched_form = document.createElement('form'); // Start here to create a grid sheet of the returned data
     sched_form.setAttribute('id', 'gridReport'); // Here too <<<<
     let container = document.getElementById('resultContainer');
@@ -350,8 +351,11 @@ document.getElementById('submit_button').addEventListener('click', async (event)
     const payload = {
         number,
         date,
-        delDate
+        delDate,
+        originCompany,
     };
+
+    console.log(payload);
 
     try {
         const response = await fetch('/read-report', {

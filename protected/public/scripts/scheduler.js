@@ -92,8 +92,6 @@ function roundTimeToHalfHour(input) {
 document.getElementById('submit_button').addEventListener('click', async (event) => {
     event.preventDefault();
 
-    console.log('submit_button pressed');
-
     // tries to remove previous form
     if (document.getElementById('schedule_form')) {
         document.getElementById('schedule_form').remove();
@@ -136,12 +134,13 @@ document.getElementById('submit_button').addEventListener('click', async (event)
             const conRefs = uniqueData(data.map((row) => row.ConRef));
             const prodNames = uniqueData(data.map((row) => row.ProdName));
             const tpNames = uniqueData(data.map((row) => row.TpName));
+            console.log(tpNames);
             const destCities = uniqueData(data.map((row) => row.DestCity));
-            //const originCompanies = ['CALUMET SHREVEPORT FUELS,LLC.', 'COFFEYVILLE RESOURCES LLC', 'DISCOVERY OIL/USED OIL SERVICE', 'ERGON A&E CATOOSA', 'ERGON', 'EXXON MOBILE (JOLIET)', 'HOLLY FRONTIER', 'HOLLY REFINING AND MARKETING', 'HOLLY REFINING AND MKTG', 'INGEVITY DERIDDER PLANT 1', 'KTN'];
+            const originCompanies = uniqueData(data.map((row) => row.TpCompany_Name)); // testing
             const destStates = uniqueData(data.map((row) => row.DestState));
             const carNames = uniqueData(data.map((row) => row.CarName1));
             const billNames = ['CECHIRE', 'CUSTPU']
-            const custNames = uniqueData(data.map((row) => row.Custname));
+            const custNames = uniqueData(data.map((row) => row.DestName));
 
             // creates input elements for the generated form
             const final_submit = document.createElement('INPUT');
@@ -183,8 +182,8 @@ document.getElementById('submit_button').addEventListener('click', async (event)
                 placeholderLabel.setAttribute('selected', true);
                 placeholderLabel.setAttribute('hidden', true);
             const fullLoadOption = document.createElement('option');
-                fullLoadOption.innerHTML = 'FULL';
-                fullLoadOption.value = 'FULL';
+                fullLoadOption.innerHTML = 'FULL LOAD';
+                fullLoadOption.value = 'FULL LOAD';
             const gallonsOption = document.createElement('option');
                 gallonsOption.innerHTML = 'GAL';
                 gallonsOption.value = 'GAL';
@@ -224,14 +223,14 @@ document.getElementById('submit_button').addEventListener('click', async (event)
             quantityDiv.appendChild(quantityLabel);
             sched_form.appendChild(quantityDiv);
             sched_form.appendChild(createFormDiv('trailerDiv', 'Trailer #:'));
-            sched_form.appendChild(createFormDiv('originDiv', '<span>*</span>Origin:', tpNames));
+            sched_form.appendChild(createFormDiv('originDiv', '<span>*</span>Origin City:', tpNames));
             sched_form.appendChild(createFormDiv('cityDiv', '<span>*</span>Destination City:', destCities));
-            //sched_form.appendChild(createFormDiv('cityDiv', '<span>*</span>Origin Company:', originCompanies));
+            sched_form.appendChild(createFormDiv('originCompanyDiv', '<span>*</span>Origin Company:', originCompanies));
             sched_form.appendChild(createFormDiv('stateDiv', '<span>*</span>Destination State:', destStates));
             sched_form.appendChild(createFormDiv('countyDiv', 'Destination County:', uniqueData(countyInput)));
             sched_form.appendChild(createFormDiv('carDiv', '<span>*</span>Carrier:', carNames));
             sched_form.appendChild(createFormDiv('billDiv', '<span>*</span>Bill to:', billNames));
-            sched_form.appendChild(createFormDiv('custDiv', '<span>*</span>Customer:', custNames));
+            sched_form.appendChild(createFormDiv('destCompanyDiv', '<span>*</span>Destination Company:', custNames));
 
             sched_form.appendChild(final_submit);
 
@@ -254,6 +253,7 @@ document.getElementById('submit_button').addEventListener('click', async (event)
                 'trailerInput',
                 'originInput',
                 'destCityInput',
+                'originCompanyInput',
                 'destStateInput',
                 'countyInput',
                 'carInput',
@@ -289,6 +289,36 @@ document.getElementById('submit_button').addEventListener('click', async (event)
 
             const submitButtonInput = document.getElementById('formSubmit');
 
+            const destinationCompanyInput = document.getElementById('custInput');
+
+            destinationCompanyInput.addEventListener('change', function(){
+                const selectedOption = destinationCompanyInput.value;
+                const destinationCityInput = document.getElementById('destCityInput');
+                const destinationStateInput = document.getElementById('destStateInput');
+
+                switch(selectedOption){
+                    case 'Coastal Energy Clinton':
+                        destinationCityInput.value = 'Clinton';
+                        destinationStateInput.value = 'OK';
+                        break;
+                    
+                    case 'Coastal Energy Miller':
+                        destinationCityInput.value = 'Miller';
+                        destinationStateInput.value = 'MO';
+                        break;
+
+                    case 'Coastal Energy Willow':
+                        destinationCityInput.value = 'Willow Springs';
+                        destinationStateInput.value = 'MO';
+                        break;
+
+                    default:
+                        destinationCityInput.value = 'Select an option';
+                        destinationStateInput.value = 'Select an option';
+                        break;
+                }
+            });
+
             const asyncClickListener = async (event) => {
                 event.preventDefault();
 
@@ -316,6 +346,7 @@ document.getElementById('submit_button').addEventListener('click', async (event)
                 const trailerInput = document.getElementById('trailerInput').value;
                 const originInput = document.getElementById('originInput').value;
                 const destCityInput = document.getElementById('destCityInput').value;
+                const originCompanyInput = document.getElementById('originCompanyInput').value;
                 const destStateInput = document.getElementById('destStateInput').value;
                 const carInput = document.getElementById('carInput').value;
                 const billToInput = document.getElementById('billToInput').value;
@@ -325,7 +356,7 @@ document.getElementById('submit_button').addEventListener('click', async (event)
                 responseText.setAttribute('id', 'responseText');
 
                 // Check if any required field is empty
-                if([productInput, quantityInput, originInput, destCityInput, destStateInput, carInput, billToInput, custInput].includes('Select an option') || [loadDateInput, delDateInput, productInput, quantityInput, originInput, destCityInput, destStateInput, carInput, billToInput, custInput].includes('') || quantityInput.includes('Select a label')){
+                if([productInput, quantityInput, originInput, destCityInput, originCompanyInput, destStateInput, carInput, billToInput, custInput].includes('Select an option') || [loadDateInput, delDateInput, productInput, quantityInput, originInput, destCityInput, originCompanyInput, destStateInput, carInput, billToInput, custInput].includes('') || quantityInput.includes('Select a label')){
                     responseText.innerHTML = '<span>Please populate all required fields</span>';
                     resultContainer.appendChild(responseText);
                     throw new Error('Failed to enter data in required field(s).');
@@ -355,8 +386,6 @@ document.getElementById('submit_button').addEventListener('click', async (event)
                 }
 
                 const username = localStorage.getItem('username');
-                
-                const originCompanyInput = null;
 
                 const payload = {
                     liftNumber,
@@ -405,7 +434,7 @@ document.getElementById('submit_button').addEventListener('click', async (event)
             submitButtonInput.addEventListener('click', asyncClickListener);
         }
     } catch (error) {
-            console.error('Uh oh!', error);
+        console.error('Uh oh!', error);
     }
 });
 
@@ -426,11 +455,41 @@ document.getElementById('submit_inbound_button').addEventListener('click', async
     sched_form.setAttribute('id', 'schedule_form');
     let container = document.getElementById('resultContainer');
 
-    const tpNames = ['SHREVEPORT,LA', 'COFFEYVILLE,KS', 'SPRINGDALE,AR', 'CATOOSA,OK', 'MEMPHIS,TN', 'CHANNAHON,IL', 'EL DORADO,KS', 'TULSA,OK', 'DE RIDDER,LA', 'LA PORTE,TX'];
-    const destStates = ['OK', 'MO', 'TX', 'KS', 'MD'];
-    const carNames = ['AMERICAN PAVING FABRICS INC', 'ARNCO PETROLEUM TRANSPORTATION', 'CAPITAL HAULING', 'COUCH EXCAVATING CO', 'GHIGAU TRUCKING', 'GROENDYKE TRANSPORT', 'HALL HAULING', 'JAG TRUCKING', 'MILLER TRUCK LINES', 'MUNDS ENERGY', 'PETRO LOGISTICS LLC', 'PTI', 'RL MOORE LLC', 'ROLLER TRANSPORT', 'YT & E'];
-    const billNames = ['CECHIRE', 'CUSTPU'];
-    const originCompanies = ['CALUMET SHREVEPORT FUELS,LLC.', 'COFFEYVILLE RESOURCES LLC', 'DISCOVERY OIL/USED OIL SERVICE', 'ERGON A&E CATOOSA', 'ERGON', 'EXXON MOBILE (JOLIET)', 'HOLLY FRONTIER', 'HOLLY REFINING AND MARKETING', 'HOLLY REFINING AND MKTG', 'INGEVITY DERIDDER PLANT 1', 'KTN'];
+    let tpNames;
+    let destStates;
+    let carNames;
+    let billNames;
+    let originCompanies;
+    let prodNames;
+    let destCompanies;
+
+    try {
+        const response = await fetch('/get-inbound-prefill-data', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch data from server.');
+        }
+
+        const responseData = await response.json();
+
+        const data = responseData.result;
+
+        tpNames = data.map((row) => row.tpNames.split('|'))[0];
+        destStates = data.map((row) => row.destStates.split('|'))[0];
+        carNames = data.map((row) => row.carNames.split('|'))[0];
+        billNames = data.map((row) => row.billNames.split('|'))[0];
+        originCompanies = data.map((row) => row.originCompanies.split('|'))[0];
+        prodNames = data.map((row) => row.prodNames.split('|'))[0];
+        destCompanies = ['COASTAL ENERGY - CLINTON','COASTAL ENERGY - MILLER','COASTAL ENERGY WILLOW RAIL','PLAINS ENERGY MILLER','PLAINS ENERGY WILLOW SPRINGS'];
+    }
+    catch(error){
+        console.error('Uh oh!', error);
+    }
 
     // creates input elements for the generated form
     const final_submit = document.createElement('INPUT');
@@ -476,8 +535,8 @@ document.getElementById('submit_inbound_button').addEventListener('click', async
         placeholderLabel.setAttribute('selected', true);
         placeholderLabel.setAttribute('hidden', true);
     const fullLoadOption = document.createElement('option');
-        fullLoadOption.innerHTML = 'FULL';
-        fullLoadOption.value = 'FULL';
+        fullLoadOption.innerHTML = 'FULL LOAD';
+        fullLoadOption.value = 'FULL LOAD';
     const gallonsOption = document.createElement('option');
         gallonsOption.innerHTML = 'GAL';
         gallonsOption.value = 'GAL';
@@ -511,20 +570,20 @@ document.getElementById('submit_inbound_button').addEventListener('click', async
     delDateTimeDiv.appendChild(delTime);
     sched_form.appendChild(delDateTimeDiv);
 
-    sched_form.appendChild(createFormDiv('prodDiv', '<span>*</span>Product:'));
+    sched_form.appendChild(createFormDiv('prodDiv', '<span>*</span>Product:', prodNames));
     const quantityDiv = createFormDiv('quantityDiv', '<span>*</span>Quantity:');
     quantityDiv.appendChild(productQuantity);
     quantityDiv.appendChild(quantityLabel);
     sched_form.appendChild(quantityDiv);
     sched_form.appendChild(createFormDiv('trailerDiv', 'Trailer #:'));
-    sched_form.appendChild(createFormDiv('originDiv', '<span>*</span>Origin:', tpNames));
+    sched_form.appendChild(createFormDiv('originDiv', '<span>*</span>Origin City:', tpNames));
     sched_form.appendChild(createFormDiv('cityDiv', '<span>*</span>Destination City:'));
     sched_form.appendChild(createFormDiv('originCompanyDiv', '<span>*</span>Origin Company:', originCompanies));
     sched_form.appendChild(createFormDiv('stateDiv', '<span>*</span>Destination State:', destStates));
-    sched_form.appendChild(createFormDiv('countyDiv', 'Destination County:', uniqueData(countyInput)));
+    //sched_form.appendChild(createFormDiv('countyDiv', 'Destination County:', uniqueData(countyInput)));
     sched_form.appendChild(createFormDiv('carDiv', '<span>*</span>Carrier:', carNames));
-    sched_form.appendChild(createFormDiv('billDiv', '<span>*</span>Bill to:', billNames));
-    sched_form.appendChild(createFormDiv('custDiv', '<span>*</span>Customer:'));
+    //sched_form.appendChild(createFormDiv('billDiv', '<span>*</span>Bill to:', billNames));
+    sched_form.appendChild(createFormDiv('destCompanyDiv', '<span>*</span>Destination Company:', destCompanies));
 
     sched_form.appendChild(final_submit);
 
@@ -545,9 +604,9 @@ document.getElementById('submit_inbound_button').addEventListener('click', async
         'destCityInput',
         'originCompanyInput',
         'destStateInput',
-        'countyInput',
+        //'countyInput',
         'carInput',
-        'billToInput',
+        //'billToInput',
         'custInput',
         'formSubmit',
     ];
@@ -575,7 +634,101 @@ document.getElementById('submit_inbound_button').addEventListener('click', async
     // scrolls to bottom of page on button click
     window.scrollTo({ left: 0, top: document.body.scrollHeight, behavior: 'smooth' });
 
+    const originCompanyInput = document.getElementById('originCompanyInput');
+    const destinationCompanyInput = document.getElementById('custInput');
+    let billToInput = '';
     const submitButtonInput = document.getElementById('formSubmit');
+
+    originCompanyInput.addEventListener('change', function(){
+        const selectedOption = originCompanyInput.value;
+        const originCity = document.getElementById('originInput');
+
+        switch(selectedOption){
+            case 'CALUMET SHREVEPORT FUELS,LLC.':
+                originCity.value = 'SHREVEPORT,LA';
+                break;
+            
+            case 'COFFEYVILLE RESOURCES LLC':
+                originCity.value = 'COFFEYVILLE,KS';
+                break;
+
+            case 'DISCOVERY OIL/USED OIL SERVICE':
+                originCity.value = 'SPRINGDALE,AR';
+                break;
+
+            case 'ERGON A&E CATOOSA':
+            case 'HOLLY FRONTIER CATOOSA':
+                originCity.value = 'CATOOSA,OK';
+                break;
+
+            case 'ERGON':
+                originCity.value = 'MEMPHIS,TN';
+                break;
+
+            case 'EXXON MOBILE (JOLIET)':
+                originCity.value = 'CHANNAHON,IL';
+                break;
+
+            case 'HOLLY FRONTIER EL DORADO':
+                originCity.value = 'EL DORADO,KS';
+                break;
+
+            case 'HOLLY REFINING AND MARKETING':
+            case 'HOLLY REFINING AND MKTG':
+                originCity.value = 'TULSA,OK';
+                break;
+
+            case 'INGEVITY DERIDDER PLANT 1':
+                originCity.value = 'DE RIDDER,LA';
+                break;
+
+            case 'KTN':
+                originCity.value = 'LA PORTE,TX';
+                break;
+
+            default:
+                originCity.value = '';
+                break;
+        }
+    });
+
+    destinationCompanyInput.addEventListener('change', function(){
+        const selectedOption = destinationCompanyInput.value;
+        const destinationCity = document.getElementById('destCityInput');
+        const destinationState = document.getElementById('destStateInput');
+        destinationState.value = 'MO';
+
+        switch(selectedOption){
+            case 'COASTAL ENERGY - CLINTON':
+                destinationCity.value = 'CLINTON';
+                billToInput = 'COACLI';
+                break;
+            
+            case 'COASTAL ENERGY - MILLER':
+                destinationCity.value = 'MILLER';
+                billToInput = 'COAMIL';
+                break;
+
+            case 'PLAINS ENERGY MILLER':
+                destinationCity.value = 'MILLER';
+                billToInput = 'PLAPOT';
+                break;
+
+            case 'COASTAL ENERGY WILLOW RAIL':
+                destinationCity.value = 'WILLOW SPRINGS';
+                billToInput = 'COAWIL';
+                break;
+
+            case 'PLAINS ENERGY WILLOW SPRINGS':
+                destinationCity.value = 'WILLOW SPRINGS';
+                billToInput = 'PLAPOT';
+                break;
+
+            default:
+                destinationCity.value = '';
+                break;
+        }
+    });
 
     const asyncClickListener = async (event) => {
         event.preventDefault();
@@ -599,7 +752,7 @@ document.getElementById('submit_inbound_button').addEventListener('click', async
         }
 
         const productInput = document.getElementById('productInput').value;
-        const prodArray = document.getElementById('productInput').value;
+        const prodArray = prodNames;
         const quantityInput = `${document.getElementById('quantityInput').value} ${document.getElementById('quantityLabel').value}`;
         const trailerInput = document.getElementById('trailerInput').value;
         const originInput = document.getElementById('originInput').value;
@@ -607,14 +760,14 @@ document.getElementById('submit_inbound_button').addEventListener('click', async
         const originCompanyInput = document.getElementById('originCompanyInput').value;
         const destStateInput = document.getElementById('destStateInput').value;
         const carInput = document.getElementById('carInput').value;
-        const billToInput = document.getElementById('billToInput').value;
+        //const billToInput = document.getElementById('billToInput').value;
         const custInput = document.getElementById('custInput').value;
         const resultContainer = document.getElementById('schedule_form');
         const responseText = document.createElement('h1');
         responseText.setAttribute('id', 'responseText');
 
         // Check if any required field is empty
-        if([productInput, quantityInput, originInput, destCityInput, destStateInput, carInput, billToInput, custInput].includes('Select an option') || [loadDateInput, delDateInput, productInput, quantityInput, originInput, destCityInput, originCompanyInput, destStateInput, carInput, billToInput, custInput].includes('') || quantityInput.includes('Select a label')){
+        if([productInput, quantityInput, originInput, destCityInput, destStateInput, carInput, /*billToInput, */custInput].includes('Select an option') || [loadDateInput, delDateInput, productInput, quantityInput, originInput, destCityInput, originCompanyInput, destStateInput, carInput, /*billToInput, */custInput].includes('') || quantityInput.includes('Select a label')){
             responseText.innerHTML = '<span>Please populate all required fields</span>';
             resultContainer.appendChild(responseText);
             throw new Error('Failed to enter data in required field(s).');
@@ -664,8 +817,6 @@ document.getElementById('submit_inbound_button').addEventListener('click', async
             trailerInput,
             username,
         };
-
-        console.log(payload);
         
         // Input information to our database
         try {
