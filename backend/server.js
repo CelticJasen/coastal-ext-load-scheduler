@@ -51,7 +51,7 @@ const localViewerConfig = {
 
 //Our External Database config for reading data
 const extConfig = {
-    server: 'DEARMAN-TUL',
+    server: 'DEARMAN',
     authentication: {
         type: 'default',
         options: {
@@ -60,7 +60,7 @@ const extConfig = {
         },
     },
     options: {
-        database: 'Tulsa',
+        database: 'CEC_Unity',
         encrypt: false,
     },
 };
@@ -450,7 +450,7 @@ app.post('/submit-input-form', async (req,res) => {
 
         res.status(200).send('Data inserted successfully.');
 
-        insertQuery = 'INSERT INTO [History] ([ID], [lift_num], [load_date], [load_time], [del_date], [del_time], [product], [product_array], [quantity], [origin], [cust_name], [origin_company], [carrier], [bill_to], [destination_city], [destination_state], [trailer_number], [editor], [timestamp], [display], [completed_by]) SELECT [ID], [lift_num], [load_date], [load_time], [del_date], [del_time], [product], [product_array], [quantity], [origin], [cust_name], [origin_company], [carrier], [bill_to], [destination_city], [destination_state], [trailer_number], [editor], [timestamp], [display], [completed_by] FROM [Main] WHERE ID = (SELECT MAX([ID]) FROM [Main]);';
+        insertQuery = 'INSERT INTO [History] ([ID], [lift_num], [load_date], [load_time], [del_date], [del_time], [product], [product_array], [quantity], [origin], [cust_name], [origin_company], [carrier], [bill_to], [destination_city], [destination_state], [trailer_number], [editor], [timestamp], [display], [completed_by], [weight], [bolNumber], [deleted]) SELECT [ID], [lift_num], [load_date], [load_time], [del_date], [del_time], [product], [product_array], [quantity], [origin], [cust_name], [origin_company], [carrier], [bill_to], [destination_city], [destination_state], [trailer_number], [editor], [timestamp], [display], [completed_by], [weight], [bolNumber], 0 FROM [Main] WHERE ID = (SELECT MAX([ID]) FROM [Main]);';
 
         databaseQuery(insertQuery, localConfig);
 
@@ -471,7 +471,7 @@ app.post('/read-report', async (req,res) => {
         let query;
 
         if(plant){
-            query = `SELECT ID, lift_num, CONVERT(varchar, load_date, 120) AS convertedLoadDate, CONVERT(varchar(5), load_time, 108) AS loadTimeFormatted, CONVERT(varchar, del_date, 120) AS convertedDelDate, CONVERT(varchar(5), del_time, 108) AS delTimeFormatted, product, quantity, origin_company, origin, cust_name, carrier, bill_to, destination_city, destination_state, CONVERT(varchar(16), timestamp, 120) AS timestamp, product_array FROM Main WHERE NOT lift_num = '' AND (ID = '${number}' OR CONVERT(date, '${date}') = CONVERT(date, load_date) OR CONVERT(date, '${delDate}') = CONVERT(date, del_date))`;
+            query = `SELECT ID, lift_num, CONVERT(varchar, load_date, 120) AS convertedLoadDate, CONVERT(varchar(5), load_time, 108) AS loadTimeFormatted, CONVERT(varchar, del_date, 120) AS convertedDelDate, CONVERT(varchar(5), del_time, 108) AS delTimeFormatted, product, quantity, origin_company, origin, cust_name, carrier, bill_to, destination_city, destination_state, CONVERT(varchar(16), timestamp, 120) AS timestamp, product_array, display FROM Main WHERE NOT lift_num = '' AND (ID = '${number}' OR CONVERT(date, '${date}') = CONVERT(date, load_date) OR CONVERT(date, '${delDate}') = CONVERT(date, del_date))`;
 
             if(originCompany !== '' && (number !== '' || date !== '' || delDate !== '')){
                 query += ` AND dbo.levenshteinDistance([origin_company], '${originCompany}') <= 5 OR [origin_company] LIKE '%${originCompany}%'`;
@@ -481,7 +481,7 @@ app.post('/read-report', async (req,res) => {
             }
         }
         else{
-            query = `SELECT ID, lift_num, CONVERT(varchar, load_date, 120) AS convertedLoadDate, CONVERT(varchar(5), load_time, 108) AS loadTimeFormatted, CONVERT(varchar, del_date, 120) AS convertedDelDate, CONVERT(varchar(5), del_time, 108) AS delTimeFormatted, product, quantity, origin_company, origin, cust_name, carrier, bill_to, destination_city, destination_state, CONVERT(varchar(16), timestamp, 120) AS timestamp, product_array FROM Main WHERE (ID = '${number}' OR CONVERT(date, '${date}') = CONVERT(date, load_date) OR CONVERT(date, '${delDate}') = CONVERT(date, del_date))`;
+            query = `SELECT ID, lift_num, CONVERT(varchar, load_date, 120) AS convertedLoadDate, CONVERT(varchar(5), load_time, 108) AS loadTimeFormatted, CONVERT(varchar, del_date, 120) AS convertedDelDate, CONVERT(varchar(5), del_time, 108) AS delTimeFormatted, product, quantity, origin_company, origin, cust_name, carrier, bill_to, destination_city, destination_state, CONVERT(varchar(16), timestamp, 120) AS timestamp, product_array, display FROM Main WHERE (ID = '${number}' OR CONVERT(date, '${date}') = CONVERT(date, load_date) OR CONVERT(date, '${delDate}') = CONVERT(date, del_date))`;
 
             if(originCompany !== '' && (number !== '' || date !== '' || delDate !== '')){
                 query += ` AND dbo.levenshteinDistance([origin_company], '${originCompany}') <= 5 OR [origin_company] LIKE '%${originCompany}%'`;
@@ -505,10 +505,23 @@ app.post('/read-report', async (req,res) => {
 });
 
 app.post('/read-reports-page', async (req, res) => {
-    const { startDate, endDate } = req.body;
+    const { startDate, endDate, loadID, history } = req.body;
 
     try {
-        const query = `SELECT ID, lift_num, CONVERT(varchar, load_date, 120) AS convertedLoadDate, CONVERT(varchar(5), load_time, 108) AS loadTimeFormatted, CONVERT(varchar, del_date, 120) AS convertedDelDate, CONVERT(varchar(5), del_time, 108) AS delTimeFormatted, product, quantity, origin_company, origin, cust_name, carrier, bill_to, destination_city, destination_state, CONVERT(varchar(16), timestamp, 120) AS timestamp FROM Main WHERE load_date BETWEEN '${startDate}' AND '${endDate}'`;
+        let query = '';
+
+        if(history && !loadID){
+            query = `SELECT ID, lift_num, CONVERT(varchar, load_date, 120) AS convertedLoadDate, CONVERT(varchar(5), load_time, 108) AS loadTimeFormatted, CONVERT(varchar, del_date, 120) AS convertedDelDate, CONVERT(varchar(5), del_time, 108) AS delTimeFormatted, product, quantity, origin_company, origin, cust_name, carrier, bill_to, destination_city, destination_state, CONVERT(varchar(16), timestamp, 120) AS timestamp, trailer_number, editor, IIF(display = 1, 'ACTIVE', 'COMPLETE') AS display, completed_by, weight, bolNumber, IIF(deleted = 1, 'DELETED', 'EXISTS') AS deleted FROM History WHERE load_date BETWEEN '${startDate}' AND '${endDate}' ORDER BY ID ASC`;
+        }
+        else if(history && loadID){
+            query = `SELECT ID, lift_num, CONVERT(varchar, load_date, 120) AS convertedLoadDate, CONVERT(varchar(5), load_time, 108) AS loadTimeFormatted, CONVERT(varchar, del_date, 120) AS convertedDelDate, CONVERT(varchar(5), del_time, 108) AS delTimeFormatted, product, quantity, origin_company, origin, cust_name, carrier, bill_to, destination_city, destination_state, CONVERT(varchar(16), timestamp, 120) AS timestamp, trailer_number, editor, IIF(display = 1, 'ACTIVE', 'COMPLETE') AS display, completed_by, weight, bolNumber, IIF(deleted = 1, 'DELETED', 'EXISTS') AS deleted FROM History WHERE ID = '${loadID}'`;
+        }
+        else if(!history && loadID){
+            query = `SELECT ID, lift_num, CONVERT(varchar, load_date, 120) AS convertedLoadDate, CONVERT(varchar(5), load_time, 108) AS loadTimeFormatted, CONVERT(varchar, del_date, 120) AS convertedDelDate, CONVERT(varchar(5), del_time, 108) AS delTimeFormatted, product, quantity, origin_company, origin, cust_name, carrier, bill_to, destination_city, destination_state, CONVERT(varchar(16), timestamp, 120) AS timestamp, trailer_number, editor, IIF(display = 1, 'ACTIVE', 'COMPLETE') AS display, completed_by, weight, bolNumber FROM Main WHERE ID = '${loadID}'`;
+        }
+        else{
+            query = `SELECT ID, lift_num, CONVERT(varchar, load_date, 120) AS convertedLoadDate, CONVERT(varchar(5), load_time, 108) AS loadTimeFormatted, CONVERT(varchar, del_date, 120) AS convertedDelDate, CONVERT(varchar(5), del_time, 108) AS delTimeFormatted, product, quantity, origin_company, origin, cust_name, carrier, bill_to, destination_city, destination_state, CONVERT(varchar(16), timestamp, 120) AS timestamp, trailer_number, editor, IIF(display = 1, 'ACTIVE', 'COMPLETE') AS display, completed_by, weight, bolNumber FROM Main WHERE load_date BETWEEN '${startDate}' AND '${endDate}'`;
+        }
 
         const result = await databaseQuery(query, localConfig);
 
@@ -550,8 +563,6 @@ app.post('/read-viewer', async (req, res) => {
 
     const startDatePlusOne = dayTwo.toISOString().split('T')[0];
     const startDatePlusTwo = dayThree.toISOString().split('T')[0];
-
-    //console.log(startDate, how, when, who);
 
     try {
         let query = "SELECT [ID], [lift_num], NULL AS [status], [product], [quantity], [origin_company] AS [originCompany], [origin], [cust_name], [destination_city] + ', ' + [destination_state] AS [destinationCity], ISNULL(CONVERT(varchar(7), [load_time], 100), '') AS [loadTime], CONVERT(varchar, [load_date], 1) AS [loadDate], CONVERT(varchar, [del_date], 1) + CASE WHEN [del_date] IS NULL THEN '' ELSE ' ' + ISNULL(CONVERT(varchar(7), [del_time], 100), '') END AS [delTime], [carrier], [bill_to], NULL AS [driver], NULL AS [truck], [trailer_number] AS [trailer], NULL AS [poNum], NULL AS [destPONum], NULL AS [pump], NULL AS [remarks], [display] FROM [External_load_scheduling].[dbo].[Main] ";
@@ -809,11 +820,16 @@ app.post('/update-display-status', async(req,res) => {
     try{
         const id = req.body;
 
-        let query = `UPDATE [External_load_scheduling].[dbo].[Main] SET [display] = 0, [completed_by] = '${id.initials}' WHERE [ID] = ${id.number};`;
+        let query = `UPDATE [External_load_scheduling].[dbo].[Main] SET [display] = 0, [completed_by] = '${id.initials}', [weight] = '${id.weight}', [bolNumber] = '${id.bolNumber}', [timestamp] = GETDATE() WHERE [ID] = ${id.number};`;
 
         const response = await databaseQuery(query, localConfig);
 
         res.json(response);
+
+        query = `INSERT INTO [History] ([ID], [lift_num], [load_date], [load_time], [del_date], [del_time], [product], [product_array], [quantity], [origin], [cust_name], [origin_company], [carrier], [bill_to], [destination_city], [destination_state], [trailer_number], [editor], [timestamp], [display], [completed_by], [weight], [bolNumber], [deleted]) SELECT [ID], [lift_num], [load_date], [load_time], [del_date], [del_time], [product], [product_array], [quantity], [origin], [cust_name], [origin_company], [carrier], [bill_to], [destination_city], [destination_state], [trailer_number], [editor], [timestamp], [display], [completed_by], [weight], [bolNumber], 0 FROM [Main] WHERE ID = '${id.number}';`;
+
+        await databaseQuery(query, localConfig);
+
     } catch (error) {
         console.error('Error updating record: ', error);
         res.status(500).json({error: 'Internal server error'});
@@ -834,28 +850,31 @@ app.post('/update-record', async (req,res) => {
         let query = '';
         let hasQuantity = true;
         let editorUsernameQuery = '';
+        let timestampQuery = '';
 
         const receivedArray = req.body;
         
         for (i=0; i < receivedArray.length; i++){
-            loadDateQuery += ` WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].loadDate}'`;
+            loadDateQuery += ` WHEN ID = '${receivedArray[i].id}' THEN '${receivedArray[i].loadDate}'`;
             if(receivedArray[i].loadTime){
-                loadTimeQuery += ` WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].loadTime}'`;
+                loadTimeQuery += ` WHEN ID = '${receivedArray[i].id}' THEN '${receivedArray[i].loadTime}'`;
             }
             else{
-                loadTimeQuery += ` WHEN '${receivedArray[i].id}' THEN NULL`;
+                loadTimeQuery += ` WHEN ID = '${receivedArray[i].id}' THEN ''`;
             }
-            delDateQuery += ` WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].delDate}'`;
+
+            delDateQuery += ` WHEN ID = '${receivedArray[i].id}' THEN '${receivedArray[i].delDate}'`;
+
             if(receivedArray[i].delTime){
-                delTimeQuery += ` WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].delTime}'`;
+                delTimeQuery += ` WHEN ID = '${receivedArray[i].id}' THEN '${receivedArray[i].delTime}'`;
             }
             else{
-                delTimeQuery += ` WHEN '${receivedArray[i].id}' THEN NULL`;
+                delTimeQuery += ` WHEN ID = '${receivedArray[i].id}' THEN ''`;
             }
 
             // if the user is administrator or dispatch we need to account for the fact that they can edit quantity, bill_to, and product while other users can't
             if(receivedArray[i].quantity){
-                quantityQuery += ` WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].quantity}'`;
+                quantityQuery += ` WHEN ID = '${receivedArray[i].id}' THEN '${receivedArray[i].quantity}'`;
                 hasQuantity = true;
             }
             else{
@@ -863,9 +882,10 @@ app.post('/update-record', async (req,res) => {
             }
 
             // if there's a quantity, then there definitely is a billTo and product since that's how the app is built. If something changes, this may need its own check.
-            billToQuery += ` WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].billTo}'`;
-            productQuery += ` WHEN '${receivedArray[i].id}' THEN '${receivedArray[i].product}'`;
-            editorUsernameQuery += ` WHEN '${receivedArray[i].id}' THEN CONCAT(editor, '${receivedArray[i].username}')`;
+            billToQuery += ` WHEN ID = '${receivedArray[i].id}' THEN '${receivedArray[i].billTo}'`;
+            productQuery += ` WHEN ID = '${receivedArray[i].id}' THEN '${receivedArray[i].product}'`;
+            editorUsernameQuery += ` WHEN ID = '${receivedArray[i].id}' THEN '${receivedArray[i].username}'`;
+            timestampQuery += ` WHEN ID = '${receivedArray[i].id}' THEN GETDATE()`;
 
             // we need a different ending depending on whether or not there are more records to edit
             if(i+1 == receivedArray.length){
@@ -881,35 +901,39 @@ app.post('/update-record', async (req,res) => {
             query = `
             UPDATE Main
             SET load_date = 
-                CASE ID
+                CASE
                     ${loadDateQuery}
                 END,
             load_time = 
-                CASE ID
+                CASE
                     ${loadTimeQuery}
                 END,
             del_time = 
-                CASE ID
+                CASE
                     ${delTimeQuery}
                 END,
             del_date =
-                CASE ID
+                CASE
                     ${delDateQuery}
                 END,
             quantity =
-                CASE ID
+                CASE
                     ${quantityQuery}
                 END,
             bill_to =
-                CASE ID
+                CASE
                     ${billToQuery}
                 END,
             product =
-                CASE ID
+                CASE
                     ${productQuery}
                 END,
+            timestamp =
+                CASE
+                    ${timestampQuery}
+                END,
             editor =
-                CASE ID
+                CASE
                     ${editorUsernameQuery}
                 END
             WHERE ID IN (${queryEnd});
@@ -920,23 +944,27 @@ app.post('/update-record', async (req,res) => {
             query = `
             UPDATE Main
             SET load_date = 
-                CASE ID
+                CASE
                     ${loadDateQuery}
                 END,
             load_time = 
-                CASE ID
+                CASE
                     ${loadTimeQuery}
                 END,
             del_time = 
-                CASE ID
+                CASE
                     ${delTimeQuery}
                 END,
             del_date =
-                CASE ID
+                CASE
                     ${delDateQuery}
                 END,
+            timestamp =
+                CASE
+                    ${timestampQuery}
+                END,
             editor =
-                CASE ID
+                CASE
                     ${editorUsernameQuery}
                 END
             WHERE ID IN (${queryEnd});
@@ -948,7 +976,7 @@ app.post('/update-record', async (req,res) => {
         res.json(response);
 
         for (i=0; i < receivedArray.length; i++){
-            query = `INSERT INTO [History] ([ID], [lift_num], [load_date], [load_time], [del_date], [del_time], [product], [product_array], [quantity], [origin], [cust_name], [carrier], [bill_to], [destination_city], [destination_state], [trailer_number], [editor], [timestamp], [display], [completed_by]) SELECT [ID], [lift_num], [load_date], [load_time], [del_date], [del_time], [product], [product_array], [quantity], [origin], [cust_name], [carrier], [bill_to], [destination_city], [destination_state], [trailer_number], [editor], [timestamp], [display], [completed_by] FROM [Main] WHERE ID = '${receivedArray[i].id}';`;
+            query = `INSERT INTO [History] ([ID], [lift_num], [load_date], [load_time], [del_date], [del_time], [product], [product_array], [quantity], [origin], [cust_name], [origin_company], [carrier], [bill_to], [destination_city], [destination_state], [trailer_number], [editor], [timestamp], [display], [completed_by], [weight], [bolNumber], [deleted]) SELECT [ID], [lift_num], [load_date], [load_time], [del_date], [del_time], [product], [product_array], [quantity], [origin], [cust_name], [origin_company], [carrier], [bill_to], [destination_city], [destination_state], [trailer_number], [editor], [timestamp], [display], [completed_by], [weight], [bolNumber], 0 FROM [Main] WHERE ID = '${receivedArray[i].id}';`;
     
             await databaseQuery(query, localConfig);
         }
@@ -961,8 +989,29 @@ app.post('/update-record', async (req,res) => {
 
 app.post('/delete-schedule', async (req,res) => {
     const id = req.body.number;
+    const user = req.body.username;
 
-    const query = `DELETE FROM Main WHERE ID = '${id}';`;
+    let query = `UPDATE [External_load_scheduling].[dbo].[Main] SET [editor] = '${user}', [timestamp] = GETDATE();`;
+
+    try{
+        await databaseQuery(query, localConfig);
+    }
+    catch(error){
+        console.error('Error entering username to MAIN table: ', error);
+        res.status(500).send('Could not delete the record. Error entering user into main table of database.');
+    }
+
+    query = `INSERT INTO [History] ([ID], [lift_num], [load_date], [load_time], [del_date], [del_time], [product], [product_array], [quantity], [origin], [cust_name], [origin_company], [carrier], [bill_to], [destination_city], [destination_state], [trailer_number], [editor], [timestamp], [display], [completed_by], [weight], [bolNumber], [deleted]) SELECT [ID], [lift_num], [load_date], [load_time], [del_date], [del_time], [product], [product_array], [quantity], [origin], [cust_name], [origin_company], [carrier], [bill_to], [destination_city], [destination_state], [trailer_number], [editor], [timestamp], [display], [completed_by], [weight], [bolNumber], 1 FROM [Main] WHERE ID = '${id}';`;
+
+    try{
+        await databaseQuery(query, localConfig);
+    }
+    catch (error){
+        console.error('Error logging into history: ', error);
+        res.status(500).send('Could not delete record. History could not be updated');
+    }
+
+    query = `DELETE FROM Main WHERE ID = '${id}';`;
 
     try{
         await databaseQuery(query, localConfig);

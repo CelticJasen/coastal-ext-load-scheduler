@@ -169,16 +169,18 @@ document.getElementById('submit_button').addEventListener('click', async (event)
             const data = responseData.result;
 
             const conRefs = uniqueData(data.map((row) => row.ConRef));
-            const prodNames = uniqueData(data.map((row) => row.ProdName));
+            const prodNames = ['64-22','58-28','VTB','HARD PEN','FLUX','PDA'];
+            //const prodNames = uniqueData(data.map((row) => row.ProdName));
             const tpNames = uniqueData(data.map((row) => row.TpName));
             console.log(tpNames);
             const destCities = uniqueData(data.map((row) => row.DestCity));
-            const originCompanies = uniqueData(data.map((row) => row.TpCompany_Name)); // testing
+            const originCompanies = ['COASTAL ENERGY WILLOW RAIL','COASTAL ENERGY - MILLER','COASTAL ENERGY - CLINTON','PLAINS ENERGY WILLOW SPRINGS','PLAINS ENERGY MILLER'];
+            //const originCompanies = uniqueData(data.map((row) => row.TpCompany_Name));
             const destStates = uniqueData(data.map((row) => row.DestState));
             const carNames = uniqueData(data.map((row) => row.CarName1));
             const billNames = ['CECHIRE', 'CUSTPU']
             const custNames = uniqueData(data.map((row) => row.DestName));
-            const trailerNumbers = ['CUSTOMER PROVIDED', '820', '821'];
+            const trailerNumbers = ['CARRIER PROVIDED', '820', '821'];
 
             // creates input elements for the generated form
             const final_submit = document.createElement('INPUT');
@@ -525,7 +527,7 @@ document.getElementById('submit_inbound_button').addEventListener('click', async
         originCompanies = data.map((row) => row.originCompanies.split('|'))[0];
         prodNames = data.map((row) => row.prodNames.split('|'))[0];
         destCompanies = ['COASTAL ENERGY - CLINTON','COASTAL ENERGY - MILLER','COASTAL ENERGY WILLOW RAIL','PLAINS ENERGY MILLER','PLAINS ENERGY WILLOW SPRINGS'];
-        trailerNumbers = ['CUSTOMER PROVIDED', '820', '810'];
+        trailerNumbers = ['CARRIER PROVIDED', '820', '810'];
     }
     catch(error){
         console.error('Uh oh!', error);
@@ -857,6 +859,8 @@ document.getElementById('submit_inbound_button').addEventListener('click', async
             trailerInput,
             username,
         };
+
+        console.log(payload);
         
         // Input information to our database
         try {

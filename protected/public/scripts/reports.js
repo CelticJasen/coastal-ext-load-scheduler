@@ -23,28 +23,37 @@ function formatMilitaryTime(timeIn){
 }
 
 // Function to dynamically create the table
-function createTable() {
+function createTable(history) {
     if(document.getElementById('tableDiv')){
         document.getElementById('tableDiv').remove();
     }
 
-    var tableContainer = document.getElementById("resultContainer");
-    var table = document.createElement("table");
+    let tableContainer = document.getElementById("resultContainer");
+    let table = document.createElement("table");
     table.id = "dynamicTable";
-    var thead = document.createElement("thead");
-    var tbody = document.createElement("tbody");
+    let thead = document.createElement("thead");
+    let tbody = document.createElement("tbody");
 
-    var headerRow = document.createElement("tr");
-    var headers = [
-        "ID", "Lift #", "Load Date","Load Time", "Delivery Date", "Delivery Time", "Product", "Qty", "Origin Company", "Origin", "Customer Name", "Carrier","Bill To", "Dest. City", "Dest. State"
-    ];
+    let headerRow = document.createElement("tr");
+    let headers = [];
+
+    if(history){
+        headers = [
+            "ID", "Lift #", "Load Date","Load Time", "Delivery Date", "Delivery Time", "Product", "Qty", "Origin Company", "Origin", "Customer Name", "Carrier","Bill To", "Dest. City", "Dest. State", "Timestamp", "Trailer", "Editor", "Completed", "Completed By","Weight", "BOL #", "Deleted"
+        ];
+    }
+    else{
+        headers = [
+            "ID", "Lift #", "Load Date","Load Time", "Delivery Date", "Delivery Time", "Product", "Qty", "Origin Company", "Origin", "Customer Name", "Carrier","Bill To", "Dest. City", "Dest. State", "Timestamp", "Trailer", "Editor", "Completed", "Completed By","Weight", "BOL #"
+        ];
+    }
 
     const tableDiv = document.createElement('div');
     tableDiv.id = 'tableDiv';
 
     // Create table headers
     headers.forEach(function (header) {
-        var th = document.createElement("th");
+        let th = document.createElement("th");
 
         th.textContent = header;
         
@@ -58,22 +67,22 @@ function createTable() {
     tableContainer.appendChild(tableDiv);
     tableDiv.appendChild(table);
 
-    populateTable();
+    populateTable(history);
 }   
 
 
 // Function to dynamically populate the table with the responseData
-async function populateTable() {
+async function populateTable(history) {
     const tableBody = document.querySelector("#dynamicTable tbody");
 
     try{
-        const responseData = await dataRetriever();
+        const responseData = await dataRetriever(history);
         responseData.forEach(function (data) {
-            var row = document.createElement("tr");
+            let row = document.createElement("tr");
             // Loop through each property in the data object and create table cells
-            for (var key in data) {
+            for (let key in data) {
                 if (data.hasOwnProperty(key) && key != 'timestamp') {
-                    var cell = document.createElement("td");
+                    let cell = document.createElement("td");
                     
                     if (key === 'loadTimeFormatted'){
                         if(data[key] !=null){
@@ -107,13 +116,16 @@ async function populateTable() {
 }
 
 // retrieves information from our server
-async function dataRetriever(){
+async function dataRetriever(history){
     const startDate = document.getElementById('beginDate').value;
     const endDate = document.getElementById('endDate').value;
+    const loadID = document.getElementById('loadID').value;
 
     const payload = {
         startDate,
-        endDate
+        endDate,
+        loadID,
+        history
     }
 
     try {
@@ -141,7 +153,17 @@ var container = document.getElementById('resultContainer');
 var startDate;
 var endDate;
 
-document.getElementById('searchButton').addEventListener('click', createTable);
+document.getElementById('searchButton').addEventListener('click', function(){
+    const history = false;
+
+    createTable(history);
+});
+
+/* document.getElementById('searchHistoryButton').addEventListener('click', function(){
+    const history = true;
+
+    createTable(history);
+}); */
 
 newLogoutButton();
 

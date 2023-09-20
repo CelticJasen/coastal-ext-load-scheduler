@@ -82,7 +82,7 @@ function createTable() {
                 delTime === null;
             }
 
-            const username = `,${localStorage.getItem('username')}`;
+            const username = `${localStorage.getItem('username')}`;
 
             const payload = {
                 id,
@@ -132,8 +132,7 @@ function populateTable(responseData) {
         loadDateEdit.setAttribute('type', 'date');
         var loadTimeEdit = document.createElement('input');
         loadTimeEdit.setAttribute('class', 'loadTimeEdit');
-        loadTimeEdit.setAttribute('type', 'time');
-        loadTimeEdit.setAttribute('onblur', 'roundTimeToHalfHour(this)')
+        loadTimeEdit.setAttribute('type', 'text');
         /* var quantityEdit = document.createElement('input');
         quantityEdit.setAttribute('class', 'quantityEdit');
         quantityEdit.setAttribute('type', 'text'); */
@@ -143,8 +142,7 @@ function populateTable(responseData) {
         delDateEdit.setAttribute('type', 'date');
         var delTimeEdit = document.createElement('input');
         delTimeEdit.setAttribute('class', 'delTimeEdit');
-        delTimeEdit.setAttribute('type', 'time');
-        delTimeEdit.setAttribute('onblur', 'roundTimeToHalfHour(this)')
+        delTimeEdit.setAttribute('type', 'text');
 
 
         // Loop through each property in the data object and create table cells
@@ -181,6 +179,14 @@ function populateTable(responseData) {
                     cell.className = 'id';
                     cell.textContent = data[key];
                 }
+                else if (key === 'display'){
+                    if(data[key]){
+                        cell.textContent = 'Active';
+                    }
+                    else{
+                        cell.textContent = 'Complete';
+                    }
+                }
                 else if(key === 'quantity'){
                     cell.textContent = data[key].replace(/null/g, '');
                 }
@@ -195,6 +201,20 @@ function populateTable(responseData) {
             }
         }
         tableBody.appendChild(row);
+
+        flatpickr(".loadTimeEdit", {
+            enableTime: true,
+            noCalendar: true,
+            dateFormat: "H:i",
+            minuteIncrement: 30,
+        });
+
+        flatpickr(".delTimeEdit", {
+            enableTime: true,
+            noCalendar: true,
+            dateFormat: "H:i",
+            minuteIncrement: 30,
+        });
     });
 }
 

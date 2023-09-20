@@ -444,6 +444,13 @@ input[type="submit"] {
     width: 8%;
 }
 
+#loadID {
+    width: 50px;
+}
+#loadIDDiv {
+    padding-right: 20px;
+}
+
 /*----------Login Page Styles----------*/
 #login{
     width: 100%;

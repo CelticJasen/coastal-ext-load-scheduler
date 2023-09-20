@@ -126,9 +126,7 @@ async function populateEditTable(user){
             body: JSON.stringify(payload),
         });
         const responseData = await response.json();
-        console.log(responseData);
 
-        //console.log(responseData);
         responseData.result.forEach(function (data) {
             var row = document.createElement('tr');
             // Loop through each property in the data object and create table cells
@@ -215,14 +213,14 @@ document.getElementById('createUser').addEventListener('click', async (event) =>
     const usernameInput = document.createElement('input');
     usernameInput.type = 'text'
     usernameInput.id = 'usernameInput';
-    usernameInput.class = 'formInput';
+    usernameInput.className = 'formInput';
     const passwordInput = document.createElement('input');
     passwordInput.type = 'password'
     passwordInput.id = 'passwordInput';
-    passwordInput.class = 'formInput';
+    passwordInput.className = 'formInput';
     const permissionInput = document.createElement('select');
     permissionInput.id = 'permissionInput';
-    permissionInput.class = 'formInput';
+    permissionInput.className = 'formInput';
 
     const adminOption = document.createElement('option');
     adminOption.innerHTML = 'Administrator';
@@ -251,22 +249,31 @@ document.getElementById('createUser').addEventListener('click', async (event) =>
     userSubmit.id = 'userSubmit';
     userSubmit.value = 'Add User';
 
-
-    const usernameDiv = createFormDiv('usernameDiv', '<span>*</span>Username:');
+    const usernameDiv = document.createElement('div');
+    usernameDiv.className = 'formDiv';
+    usernameDiv.id = 'usernameDiv';
+    usernameDiv.innerHTML = '<span>*</span>Username:';
     usernameDiv.appendChild(usernameInput);
     userForm.appendChild(usernameDiv);
 
-    const passwordDiv = createFormDiv('passwordDiv', '<span>*</span>Password:');
+    const passwordDiv = document.createElement('div');
+    passwordDiv.className = 'formDiv';
+    passwordDiv.id = 'passwordDiv';
+    passwordDiv.innerHTML = '<span>*</span>Password:';
     passwordDiv.appendChild(passwordInput);
     userForm.appendChild(passwordDiv)
 
-    const permissionDiv = createFormDiv('permissionDiv', '<span>*</span>Permission:');
+    const permissionDiv = document.createElement('div');
+    permissionDiv.className = 'formDiv';
+    permissionDiv.id = 'permissionDiv';
+    permissionDiv.innerHTML = '<span>*</span>Permission:';
     permissionDiv.appendChild(permissionInput);
     userForm.appendChild(permissionDiv);
 
     userForm.appendChild(userSubmit);
     container.appendChild(userForm);
     
+    createFormDiv();
 
     document.getElementById('userSubmit').addEventListener('click', async (event) => {
         event.preventDefault();

@@ -36,7 +36,7 @@ function createTable() {
 
     let headerRow = document.createElement('tr');
     let headers = [
-        'ID', 'Lift #', 'Load Date', 'Load Time', 'Delivery Date', 'Delivery Time', 'Product', 'Qty', 'Origin Company', 'Origin', 'Customer Name', 'Carrier', 'Bill To', 'Dest. City', 'Dest. State', 'Timestamp', 'DELETE'
+        'ID', 'Lift #', 'Load Date', 'Load Time', 'Delivery Date', 'Delivery Time', 'Product', 'Qty', 'Origin Company', 'Origin', 'Customer Name', 'Carrier', 'Bill To', 'Dest. City', 'Dest. State', 'Timestamp', 'Completed', 'DELETE'
     ];
 
     const tableDiv = document.createElement('div');
@@ -94,7 +94,7 @@ function createTable() {
             const quantity = `${row.querySelector('.quantityEdit').value} ${row.querySelector('.quantityEditType').value}`;
             const billTo = row.querySelector('.billToEdit').value;
 
-            const username = `,${localStorage.getItem('username')}`;
+            const username = `${localStorage.getItem('username')}`;
     
             const payload = {
                 id,
@@ -149,8 +149,7 @@ function populateTable(responseData) {
 
         let loadTimeEdit = document.createElement('input');
         loadTimeEdit.setAttribute('class', 'loadTimeEdit');
-        loadTimeEdit.setAttribute('type', 'time');
-        loadTimeEdit.setAttribute('onblur', 'roundTimeToHalfHour(this)');
+        loadTimeEdit.setAttribute('type', 'text');
 
         let productEdit = document.createElement('select');
         productEdit.setAttribute('class', 'productEdit');
@@ -170,8 +169,8 @@ function populateTable(responseData) {
         let quantityEditType = document.createElement('select');
         quantityEditType.setAttribute('class', 'quantityEditType');
         const fullLoadOption = document.createElement('option');
-        fullLoadOption.innerHTML = 'FULL';
-        fullLoadOption.value = 'FULL';
+        fullLoadOption.innerHTML = 'FULL LOAD';
+        fullLoadOption.value = 'FULL LOAD';
         const gallonsOption = document.createElement('option');
         gallonsOption.innerHTML = 'GAL';
         gallonsOption.value = 'GAL';
@@ -205,8 +204,7 @@ function populateTable(responseData) {
         delDateEdit.setAttribute('type', 'date');
         let delTimeEdit = document.createElement('input');
         delTimeEdit.setAttribute('class', 'delTimeEdit');
-        delTimeEdit.setAttribute('type', 'time');
-        delTimeEdit.setAttribute('onblur', 'roundTimeToHalfHour(this)')
+        delTimeEdit.setAttribute('type', 'text');
 
 
         // Loop through each property in the data object and create table cells
@@ -242,6 +240,14 @@ function populateTable(responseData) {
                     cell.className = 'id';
                     cell.textContent = data[key];
                     deleteButton.setAttribute('data-id', data[key]);
+                }
+                else if (key === 'display'){
+                    if(data[key]){
+                        cell.textContent = 'Active';
+                    }
+                    else{
+                        cell.textContent = 'Complete';
+                    }
                 }
                 else if (key === 'timestamp'){
                     cell.textContent = data[key];
@@ -289,6 +295,21 @@ function populateTable(responseData) {
         deleteTD.appendChild(deleteButton);
         row.appendChild(deleteTD);
         tableBody.appendChild(row);
+
+        flatpickr(".loadTimeEdit", {
+            enableTime: true,
+            noCalendar: true,
+            dateFormat: "H:i",
+            minuteIncrement: 30,
+        });
+
+        flatpickr(".delTimeEdit", {
+            enableTime: true,
+            noCalendar: true,
+            dateFormat: "H:i",
+            minuteIncrement: 30,
+        });
+
         deleteButton.addEventListener('click', async (event) => {
             event.preventDefault();
 
@@ -296,8 +317,10 @@ function populateTable(responseData) {
             let payload;
 
             if(confirm(`Are you sure you want to delete load with ID ${number}?`) == true){
+                const username = `${localStorage.getItem('username')}`;
                 payload = {
-                    number
+                    number,
+                    username,
                 };
             
                 try {
@@ -355,8 +378,6 @@ document.getElementById('submit_button').addEventListener('click', async (event)
         delDate,
         originCompany,
     };
-
-    console.log(payload);
 
     try {
         const response = await fetch('/read-report', {
