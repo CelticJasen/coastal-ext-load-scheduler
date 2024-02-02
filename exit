@@ -1,0 +1,197 @@
+[33mcommit e20d2c817b816b31360e7d6067afe04d9b1ed0cb[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Wed Sep 13 16:24:35 2023 -0500
+
+    Implemented the levenshtein distance algorithm into the database and this project now uses and relies on that being in there. Inbounds are now based on delivery time instead of load time. Trailer number in the scheduler is now a dropdown with free text option. Reports and Lookup tables now show origin company as well. Lookup by origin company is now more forgiving of typos due to the levenshtein distance algorithm. Bill To is now auto generated based on load destination on the scheduler when the load is created.
+
+[33mcommit ff425f7a3cf76c8919b4d372bddf93312ab86abd[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Wed Sep 13 10:49:32 2023 -0500
+
+    Big changes to the project. Everything is currently working well.
+
+[33mcommit 85a69ea1d51080e46cc9f1600f608444e622bc59[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Thu Aug 31 15:31:20 2023 -0500
+
+    Added functionality for Viewer to show inbound outbound loads in the right tabels. Require 2 to 3 characters for initials when marking load as complete. Removed ability for Plant to edit delivery dates/times. Removed ability for Plant to lookup inbound loads. Built out the Miller and Clinton pages on the Viewer.
+
+[33mcommit 867514b41c6128d9401801db6806114e8cf78bfc[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Tue Aug 29 16:11:12 2023 -0500
+
+    Made significant changes to the viewer and some simple changes to the scheduler to add a little more functionality
+
+[33mcommit 91d0b1a60bd2c481a1c536c9168ac76615574094[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Fri Aug 25 15:36:35 2023 -0500
+
+    making sure new files were added
+
+[33mcommit 3482848316b120d62070f9ecf87a58b5675b760e[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Fri Aug 25 15:35:23 2023 -0500
+
+    Finished with the inbout functionality for the scheduler for now. More to come from top though.
+
+[33mcommit c3e9485bc32a654fa012722311a4a8ff75b5e7c4[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Thu Aug 24 16:11:01 2023 -0500
+
+    Added proper criteria to Miller Asphalt Viewer so it puts records in the proper inbound and outbound fields
+
+[33mcommit 232618bae304e59125a3c0b52c2f177cde19bf2e[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Thu Aug 24 15:02:02 2023 -0500
+
+    Some tweaks made to viewer querries for table formatting
+
+[33mcommit 44225a69c067b4b2cd3dcbc52a6fe3f028d13620[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Thu Aug 24 10:54:21 2023 -0500
+
+    Added the Willow page and functionality to the viewer page
+
+[33mcommit c0c68bc329351894462a800cc0b7ea29aee27d86[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Tue Aug 22 12:35:04 2023 -0500
+
+    I made it so the Load Time field is sorted properly now that the dates are removed
+
+[33mcommit 12238432d680b6274aab2b5d030ccec378d30911[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Tue Aug 22 10:49:42 2023 -0500
+
+    Added feature where all the users that edited any of the external scheduling will be stored in the database. Modified the query for the viewer page to show 'FULL' for full load instead of '1 LBS'
+
+[33mcommit b5afedce364729ca3d279491db1b56a72c83a835[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Mon Aug 21 16:31:08 2023 -0500
+
+    Some more css editing for viewer page
+
+[33mcommit 0c076479ed518a6b9f07aa69587e42e36538feba[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Mon Aug 21 16:17:10 2023 -0500
+
+    Made some styling changes to viewer page
+
+[33mcommit ba25153d5be03497e4cf5020efc539acd1c7fd38[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Mon Aug 21 15:28:26 2023 -0500
+
+    Cleaning up code. Mostly just organizing the database queries
+
+[33mcommit 7fb6638113ab28aa1996fdf59e13a45c0ce2ea51[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Mon Aug 21 15:21:17 2023 -0500
+
+    I made the viewer queries more modular for their conditionals so it'll be easier to tinker with in the future
+
+[33mcommit 58e59d4060911ac6c4fcc333cc274aefede57489[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Mon Aug 21 15:03:20 2023 -0500
+
+    Fixed it where 'tomorrow' was referring to Friday so it would pull Friday-Monday. Now it properly checks for tomorrow being Saturday.
+
+[33mcommit 8fc6da018f24def4df411cb33d09364c6a3213f4[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Mon Aug 21 15:01:05 2023 -0500
+
+    Made it so the viewer will show Saturday-Monday if the tomorrow date is Saturday. I think it should work. Won't really know until it's Friday.
+
+[33mcommit f067a432025e0dd351905efba6a56ccc8353cb73[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Mon Aug 21 14:21:57 2023 -0500
+
+    Fixed a bug where refreshing the page too quickly or having too many users access the viewer would cause the database to get confused and throw an error about dbo.Main not being an object. I just changed it to External_loads_scheduler.dbo.Main and that seems to have fixed it by being more specific.
+
+[33mcommit 3d95f1dee65a9d73ac732a4d16375f6f0f6ca9fc[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Mon Aug 21 10:40:48 2023 -0500
+
+    added the inbound outbound functionality to the viewer so the data will go to the right tables according to that criteria
+
+[33mcommit 7d062a01f08f345b519ec985326018a6ad0bc5f1[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Fri Aug 18 14:53:51 2023 -0500
+
+    I'm not sure what I did. Just making sure I saved.
+
+[33mcommit c532f624fa9ceb356a2eba7d0cf9b47f067577a8[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Fri Aug 18 14:27:52 2023 -0500
+
+    fixed a small bug where some times weren't being sorted properly in the viewer
+
+[33mcommit 82c4637fba1ffae390b8e70c0a4733eb653a2299[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Fri Aug 18 13:10:13 2023 -0500
+
+    Fixed a database pool error that was occurring when trying to close the pool and crashing the server script. Added some extra error handling for it as well. I also added the current date on the viewer.
+
+[33mcommit ba8a9a9e62ba4e66e9b9d954837129886cc959a1[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Fri Aug 18 12:09:23 2023 -0500
+
+    added the viewer functionality for viewing ALL ASPHALT and I got it to sort them all by Load Time
+
+[33mcommit 34e52d998ff43aa1836a0ce77694d8b96485bf1a[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Mon Aug 14 16:26:45 2023 -0500
+
+    fixed the nginx config file so it serves viewer.html properly
+
+[33mcommit 0b448f3abfbb88a1b4469b83a170195c582ddd1c[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Mon Aug 14 16:11:46 2023 -0500
+
+    Made the styling for the viewer page more responsive.
+
+[33mcommit dc194b08dea77017680a07ef2588f6f6c96dd520[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Mon Aug 14 15:46:16 2023 -0500
+
+    I made the quantity, product, and bill to editable on the lookup page for dispatchers and admins. I also changed some styling for better presentation in the table on the lookup pages as well. I am also beginning to design the Viewer page and I've made it responsive acording to viewport size.
+
+[33mcommit 32ef97cff1e47290321844fe1e025ad522cc0bce[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Fri Aug 11 15:38:20 2023 -0500
+
+    I added the functionality to enable editing the quantity field on the Lookup page for Administrators and Dispatch. Also, the styling was updated for the tables to be more responsive. Timestamps are only viewable for Administrators and Dispatchers now.
+
+[33mcommit b1ac08e6326ae9ca176c8b16c640665c4e98d21f[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Thu Aug 10 16:45:35 2023 -0500
+
+    Seperate datetime values, fix time rounding, time formatting
+
+[33mcommit 8d1b2e50fcde93d002d90f227afae37363874afe[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Wed Aug 9 15:58:51 2023 -0500
+
+    major update with bug fixes and minor feature updates
+
+[33mcommit bcdfa6c7cbbf25eed5c3984b483b3f743ffbd158[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Fri Aug 4 16:30:57 2023 -0500
+
+    Added the automatic logout timeout funcationality to the site so it logs you out automatically after 5 minutes of inactivity
+
+[33mcommit 185d6c2572fab6cd973d2637039d5f643ebd5494[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Fri Aug 4 15:14:50 2023 -0500
+
+    Updated Reports page with the functionality to allow a search between dates feature as requested by Shane
+
+[33mcommit 7a6a8d2f1224dd1acef70e43536444aa59feb992[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Fri Aug 4 13:57:51 2023 -0500
+
+    updated readme with better explanation and added a backup of the nginx configuration file
+
+[33mcommit 5337f6e5ad44532a15359209ab8fca830efe4d0c[m
+Author: coastal-energy <support@coastal-fmc.com>
+Date:   Fri Aug 4 13:42:54 2023 -0500
+
+    first commit

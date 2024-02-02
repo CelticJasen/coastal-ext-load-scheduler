@@ -1,4 +1,4 @@
-// ------------------------VARIABLE DECLARATIONS-----------------------------
+// ------------------------GLOBAL VARIABLE DECLARATIONS-----------------------------
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -9,6 +9,7 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const corsOptions = 'http://extloads.coastal-fmc.com';
 const app = express();
+const fs = require('fs');
 
 const port = 3030;
 
@@ -65,7 +66,7 @@ const extConfig = {
     },
 };
 
-// ------------------------FUNCTIONS---------------------------------
+// ------------------------UTILITY FUNCTIONS---------------------------------
 
 async function databaseQuery(query, databaseConfig) {
     try {
@@ -342,7 +343,7 @@ app.get('/reportsScript', (req, res) => {
         }
         // The user is authenticated; you can handle the protected route logic here.
         let protectedPagePath;
-        if(decoded.storedPermission === 'Administrator'|| decoded.storedPermission === 'Dispatch'){
+        if(decoded.storedPermission === 'Administrator'){
             protectedPagePath = path.join(publicDir, 'scripts', 'reports-admin.js');
         }
         else{
@@ -658,7 +659,7 @@ app.post('/read-viewer', async (req, res) => {
             }
         }
 
-        //This complicated thing is so the query will show Saturday, Sunday, and Monday for tomorrow if startDate is on a Saturday. Try it out on a Friday.
+        //This complicated query is so the query will show Saturday, Sunday, and Monday for tomorrow if startDate is on a Saturday. Try it out on a Friday.
         //((DATEPART(WEEKDAY, '${startDate}') = 7 AND ((DAY(load_date) BETWEEN DAY('${startDate}') AND DAY(DATEADD(DAY, 2, '${startDate}')) AND MONTH(load_date) = MONTH('${startDate}')) OR (DAY(load_date) = DAY(DATEADD(DAY, -1, '${startDate}')) AND MONTH(load_date) = MONTH(DATEADD(DAY, 1, '${startDate}'))))) OR (DATEPART(WEEKDAY, '${startDate}') <> 7 AND (DAY(load_date) = DAY('${startDate}') AND MONTH(load_date) = MONTH('${startDate}'))))
 
         const result = await databaseQuery(query, localConfig);
@@ -1117,6 +1118,21 @@ app.post('/adminDeleteUser', async (req, res) => {
     databaseQuery(`DELETE FROM UserAuthentication WHERE username = '${username}'`, localConfig);
 
     res.status(200).send('User deleted');
+});
+
+app.post('/hacked', async (req,res) => {
+    const user = req.body.user;
+    const filePath = './logs/hacked.txt';
+    
+    fs.appendFile(filePath, user, (err) => {
+        if(err){
+            console.error("Error appending to file:", err);
+        }else{
+            console.log("String appended to file successfully.");
+        }
+    });
+
+    res.status(200).send('User logged');
 });
 
 app.listen(port, () => {

@@ -415,6 +415,7 @@ input[type="submit"] {
     background-color: white;
     table-layout: auto;
     margin-bottom: 3%;
+    font-size: 0.88vw;
 }
 
 #dynamicTable th,
@@ -494,6 +495,7 @@ input[type="submit"] {
     display: grid;
     grid-template-columns: repeat(4, 12%);
     grid-template-rows: repeat(1, auto);
+    grid-gap: 20px;
 }
 
 #createUser, #listUsers {

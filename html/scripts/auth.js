@@ -53,6 +53,7 @@ async function postData(url, data) {
     }
 }
 
+// Add click even to logout button
 function newLogoutButton(){
     document.getElementById('logoutBtn').addEventListener('click', () => {
         logout();
@@ -160,6 +161,7 @@ async function fetchProtectedRoute(route) {
     }
 }
 
+// Login by pressing enter event
 document.getElementById('login').addEventListener('keypress', function(event){
     const key = event.key;
 
